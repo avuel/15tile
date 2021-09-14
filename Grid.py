@@ -62,3 +62,40 @@ class Grid:
 
         else:
             return False
+    
+    def move_left(self):
+        if self.gap_row == 0:
+            return False
+
+        else:
+            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row - 1][self.gap_col])
+            self.gap_row: int = self.gap_row - 1
+            return True
+
+    def move_right(self):
+        if self.gap_row == self.rows - 1:
+            return False
+
+        else:
+            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row + 1][self.gap_col])
+            self.gap_row: int = self.gap_row + 1
+            return True
+
+    def move_up(self):
+        if self.gap_col == 0:
+            return False
+
+        else:
+            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row][self.gap_col - 1])
+            self.gap_col: int = self.gap_col - 1
+            return True
+
+
+    def move_down(self):
+        if self.gap_col == self.rows - 1:
+            return False
+
+        else:
+            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row][self.gap_col + 1])
+            self.gap_col: int = self.gap_col + 1
+            return True

@@ -52,11 +52,29 @@ def main(win, width, clock, fps, rows):
                 break
             
             # Check if left mouse was pressed
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_pos(pos, rows, width)
                 if grid.move_tile(row, col):
                     grid.draw(win)
+            
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    if grid.move_left():
+                        grid.draw(win)
+
+                elif event.key == pygame.K_RIGHT:
+                    if grid.move_right():
+                        grid.draw(win)
+
+                elif event.key == pygame.K_DOWN:
+                    if grid.move_down():
+                        grid.draw(win)
+
+                elif event.key == pygame.K_UP:
+                    if grid.move_up():
+                        grid.draw(win)
+
 
         
     pygame.quit()

@@ -34,3 +34,7 @@ The pygame code was mostly taken from this video
 https://youtu.be/JtiK0DOeI4A
 
 I did adapt the game but the tile generation and displaying (except for the numbers) is generally exactly what was shown in the video.
+
+You must have Python and Pygame installed (I think my Python version is 3.8.8 64-bit and pygame 2.0.1)
+I think all you need to do to run the game is drop the files all into one folder and then run test.py
+Eventually I think I will create a game object and clean up the code in the test.py file

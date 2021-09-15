@@ -16,17 +16,17 @@ class Grid:
 
     def __make_grid(self) -> None:
         self.grid: list[Tile] = []
-        nums: list[int] = list(range(self.rows * self.rows))
-        shuffle(nums)
+        nums: list[int] = list(range(1, (self.rows * self.rows) + 1))
+        #shuffle(nums)
         for i in range(self.rows):
             self.grid.append([])
 
             for j in range(self.rows):
-                num: int = nums[self.rows*i + j]
-                if (num == 0):
+                num: int = nums[self.rows*j + i]
+                if (num == (self.rows*self.rows)):
                     self.gap_row: int = i
                     self.gap_col: int = j
-                tile: Tile = Tile(i, j, self.gap, num)
+                tile: Tile = Tile(i, j, self.gap, num, self.rows)
                 self.grid[i].append(tile)
 
     def __draw_gridlines(self, win) -> None:
@@ -63,7 +63,7 @@ class Grid:
         else:
             return False
     
-    def move_left(self):
+    def move_left(self) -> bool:
         if self.gap_row == 0:
             return False
 
@@ -72,7 +72,7 @@ class Grid:
             self.gap_row: int = self.gap_row - 1
             return True
 
-    def move_right(self):
+    def move_right(self) -> bool:
         if self.gap_row == self.rows - 1:
             return False
 
@@ -81,7 +81,7 @@ class Grid:
             self.gap_row: int = self.gap_row + 1
             return True
 
-    def move_up(self):
+    def move_up(self) -> bool:
         if self.gap_col == 0:
             return False
 
@@ -91,7 +91,7 @@ class Grid:
             return True
 
 
-    def move_down(self):
+    def move_down(self) -> bool:
         if self.gap_col == self.rows - 1:
             return False
 
@@ -99,3 +99,11 @@ class Grid:
             self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row][self.gap_col + 1])
             self.gap_col: int = self.gap_col + 1
             return True
+
+    def is_solved(self) -> bool:
+        for i in range(self.rows):
+            for j in range(self.rows):
+                if self.grid[j][i].get_num() != (self.rows*i + j + 1):
+                    return False
+        
+        return True

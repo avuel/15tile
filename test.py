@@ -1,7 +1,6 @@
 import pygame
 import pygame.freetype
 import my_algorithm
-from colors import GREY
 from Grid import Grid
 
 def get_clicked_pos(pos, rows: int, width: int) -> int:
@@ -16,7 +15,7 @@ def get_clicked_pos(pos, rows: int, width: int) -> int:
 
     return row, col
 
-def main(win, width, clock, fps, rows):
+def main(win, width: int, clock, fps: int, rows: int):
     grid: Grid = Grid(width, rows)
     framerates: list[float] = []
     fps_avg: int = 0
@@ -51,32 +50,39 @@ def main(win, width, clock, fps, rows):
                 run = False
                 break
             
+            if solved:
+                continue
+
             # Check if left mouse was pressed
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                row, col = get_clicked_pos(pos, rows, width)
-                if grid.move_tile(row, col):
-                    grid.draw(win)
+                if event.button == 1:
+                    pos = pygame.mouse.get_pos()
+                    row, col = get_clicked_pos(pos, rows, width)
+                    if grid.move_tile(row, col):
+                        grid.draw(win)
+                        solved: bool = grid.is_solved()
             
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     if grid.move_left():
                         grid.draw(win)
+                        solved: bool = grid.is_solved()
 
                 elif event.key == pygame.K_RIGHT:
                     if grid.move_right():
                         grid.draw(win)
+                        solved: bool = grid.is_solved()
 
                 elif event.key == pygame.K_DOWN:
                     if grid.move_down():
                         grid.draw(win)
+                        solved: bool = grid.is_solved()
 
                 elif event.key == pygame.K_UP:
                     if grid.move_up():
                         grid.draw(win)
-
-
-        
+                        solved: bool = grid.is_solved()
+    
     pygame.quit()
 
 if __name__ == '__main__':

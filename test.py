@@ -86,7 +86,11 @@ def main(win, width: int, clock, fps: int, rows: int):
     pygame.quit()
 
 if __name__ == '__main__':
-    ROWS = 3
+    ROWS: int = 0
+    while (not (3 <= ROWS <= 10)):
+        ROWS: int = int(input("How many rows (3-10): "))
+        print()
+
     # Width (and height since we are going to be using a square) of the screen
     WIDTH: int = 960
 

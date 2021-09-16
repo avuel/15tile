@@ -17,7 +17,7 @@ class Grid:
     def __make_grid(self) -> None:
         self.grid: list[Tile] = []
         nums: list[int] = list(range(1, (self.rows * self.rows) + 1))
-        #shuffle(nums)
+        shuffle(nums)
         for i in range(self.rows):
             self.grid.append([])
 
@@ -28,6 +28,9 @@ class Grid:
                     self.gap_col: int = j
                 tile: Tile = Tile(i, j, self.gap, num, self.rows)
                 self.grid[i].append(tile)
+                
+        if self.is_solved():
+            self.__make_grid()
 
     def __draw_gridlines(self, win) -> None:
 

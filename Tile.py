@@ -14,9 +14,9 @@ class Tile:
         self.rows: int = rows
         self.color: Tuple(int, int, int) = colors.WHITE
         self.num: int = num
-        self.gap_color: Tuple(int, int, int) = colors.DARKGREY
+        self.gap_color: Tuple(int, int, int) = colors.DARKGRAY
         self.rect: pygame.Rect = pygame.Rect(self.x, self.y, self.width, self.width)
-        self.img: pygame.freetype.Font = pygame.freetype.Font('freesansbold.ttf', 48)
+        self.img: pygame.freetype.Font = pygame.freetype.Font('cour.ttf', 48)
         if (self.num == (self.rows*self.rows)):
             self.color: Tuple(int, int, int) = self.gap_color
 

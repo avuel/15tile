@@ -41,20 +41,20 @@ def main(win, width: int, clock, fps: int, rows: int):
                 run = False
                 break
             
-            if solved:
-                continue
-
             # Check if left mouse was pressed
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     pos = pygame.mouse.get_pos()
                     y,x = pos
 
-                    if (y <= grid_width):
+                    # If we are in the grid and we have not solved the puzzle, try to move
+                    if (y <= grid_width) and (not solved):
                         row, col = get_clicked_pos(x, y, rows, grid_width)
                         if grid.move_tile(row, col):
                             grid.draw(win, grid_width, extra_width, time, mins)
                             solved: bool = grid.is_solved()
+
+                    # Otherwise, if we are out of the grid and we click on restart, restart (even if solved)
                     else:
                         restart_x: int = grid_width + extra_width // 6
                         restart_y: int = 3 * grid_width // 5
@@ -64,7 +64,11 @@ def main(win, width: int, clock, fps: int, rows: int):
                         if (y >= restart_x) and (y <= (restart_x + restart_width)):
                             if (x >= restart_y) and (x <= (restart_y + restart_height)):
                                 grid.make_grid()
+                                time = 0
+                                mins = 0
 
+            elif solved:
+                continue
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:

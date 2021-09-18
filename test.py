@@ -3,11 +3,8 @@ import pygame.freetype
 import my_algorithm
 from Grid import Grid
 
-def get_clicked_pos(pos, rows: int, width: int) -> int:
+def get_clicked_pos(x: int, y: int, rows: int, width: int) -> int:
     gap: int = width // rows
-
-    # Get position of the mouse click
-    y, x = pos
 
     # Find the row, column that the mouse click occured in
     row: int = y // gap
@@ -16,7 +13,9 @@ def get_clicked_pos(pos, rows: int, width: int) -> int:
     return row, col
 
 def main(win, width: int, clock, fps: int, rows: int):
-    grid: Grid = Grid(width, rows)
+    extra_width: int = width % 960
+    grid_width: int = width - extra_width
+    grid: Grid = Grid(grid_width, rows)
     framerates: list[float] = []
     fps_avg: int = 0
     fps_counter: pygame.freetype.Font = pygame.freetype.Font('freesansbold.ttf', 16)
@@ -41,7 +40,7 @@ def main(win, width: int, clock, fps: int, rows: int):
         '''
 
         # Draw the grid
-        grid.draw(win)
+        grid.draw(win, grid_width, extra_width)
 
         for event in pygame.event.get():
             
@@ -57,30 +56,43 @@ def main(win, width: int, clock, fps: int, rows: int):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     pos = pygame.mouse.get_pos()
-                    row, col = get_clicked_pos(pos, rows, width)
-                    if grid.move_tile(row, col):
-                        grid.draw(win)
-                        solved: bool = grid.is_solved()
+                    x,y = pos
+
+                    if (x < grid_width):
+                        row, col = get_clicked_pos(x, y, rows, grid_width)
+                        if grid.move_tile(row, col):
+                            grid.draw(win, grid_width, extra_width)
+                            solved: bool = grid.is_solved()
+                    else:
+                        restart_x: int = grid_width + extra_width // 6
+                        restart_y: int = 3 * grid_width // 5
+                        restart_width: int = 2 * extra_width // 3
+                        restart_height: int = grid_width / 12
+                        if (x >= restart_x) and (x <= (restart_x + restart_width)):
+                            if (y >= restart_y) and (y <= (restart_y + restart_height)):
+                                grid.make_grid()
+
+
             
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     if grid.move_left():
-                        grid.draw(win)
+                        grid.draw(win, grid_width, extra_width)
                         solved: bool = grid.is_solved()
 
                 elif event.key == pygame.K_RIGHT:
                     if grid.move_right():
-                        grid.draw(win)
+                        grid.draw(win, grid_width, extra_width)
                         solved: bool = grid.is_solved()
 
                 elif event.key == pygame.K_DOWN:
                     if grid.move_down():
-                        grid.draw(win)
+                        grid.draw(win, grid_width, extra_width)
                         solved: bool = grid.is_solved()
 
                 elif event.key == pygame.K_UP:
                     if grid.move_up():
-                        grid.draw(win)
+                        grid.draw(win, grid_width, extra_width)
                         solved: bool = grid.is_solved()
     
     pygame.quit()
@@ -92,15 +104,16 @@ if __name__ == '__main__':
         print()
 
     # Width (and height since we are going to be using a square) of the screen
-    WIDTH: int = 960
-
+    GRID_WIDTH: int = 960
+    EXTRA_WIDTH: int = 320
     # Set the display for the window
-    WIN = pygame.display.set_mode((WIDTH, WIDTH))
+    WIN = pygame.display.set_mode((GRID_WIDTH + EXTRA_WIDTH, GRID_WIDTH))
 
     # Set the name of the window
     pygame.display.set_caption("Fortnite 2")
     pygame.freetype.init()
+    
     # Set framerate of the game
     FPS: int = 60
     CLOCK = pygame.time.Clock()
-    main(WIN, WIDTH, CLOCK, FPS, ROWS)
+    main(WIN, GRID_WIDTH + EXTRA_WIDTH, CLOCK, FPS, ROWS)

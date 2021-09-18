@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 import colors
 from random import shuffle
 from Tile import Tile
@@ -12,9 +13,9 @@ class Grid:
         self.gap_row: int = None
         self.gap_col: int = None
         self.solved: bool = False
-        self.__make_grid()
+        self.make_grid()
 
-    def __make_grid(self) -> None:
+    def make_grid(self) -> None:
         self.grid: list[Tile] = []
         nums: list[int] = list(range(1, (self.rows * self.rows) + 1))
         shuffle(nums)
@@ -30,31 +31,54 @@ class Grid:
                 self.grid[i].append(tile)
                 
         if self.is_solved():
-            self.__make_grid()
+            self.make_grid()
 
-    def __draw_gridlines(self, win) -> None:
+    def draw_gridlines(self, win) -> None:
 
         for i in range(self.rows):
             pos: int = i * self.gap
             pygame.draw.line(win, colors.BLACK, (0, pos), (self.width, pos))
             pygame.draw.line(win, colors.BLACK, (pos, 0), (pos, self.width))
 
-    def draw(self, win: pygame.display) -> None:
+    def draw(self, win, grid_width, extra_width) -> None:
         # Fill the screen with white (clear the display essentially)
-        win.fill(colors.WHITE)
-
+        win.fill(colors.WHITE, (0, 0, grid_width, grid_width))
+        win.fill(colors.GREY, (grid_width, 0, extra_width, grid_width))
         # Draw the tiles
         for row in self.grid:
             for tile in row:
                 tile.draw(win)
         
         # Draw the grid lines
-        self.__draw_gridlines(win)
+        self.draw_gridlines(win)
+
+        # Draw the restart button
+        restart_x: int = grid_width + extra_width // 6
+        restart_y: int = 3 * grid_width // 5
+        restart_width: int = 2 * extra_width // 3
+        restart_height: int = grid_width / 12
+        pygame.draw.rect(win, colors.GREEN, (restart_x, restart_y, restart_width, restart_height))
+        restart: pygame.freetype.Font = pygame.freetype.Font('freesansbold.ttf', 36)
+        restart.render_to(win, (restart_x + restart_width / 4, restart_y + 3 * restart_height / 10), "restart", colors.BLACK)
+        
+        # Draw border of restart button
+        pygame.draw.line(win, colors.BLACK, (restart_x, restart_y), (restart_x + restart_width, restart_y))
+        pygame.draw.line(win, colors.BLACK, (restart_x, restart_y), (restart_x, restart_y + restart_height))
+        pygame.draw.line(win, colors.BLACK, (restart_x + restart_width, restart_y), (restart_x + restart_width, restart_y + restart_height))
+        pygame.draw.line(win, colors.BLACK, (restart_x, restart_y + restart_height), (restart_x + restart_width, restart_y + restart_height))
 
         # Update the display
         pygame.display.update()
 
     def move_tile(self, row, col) -> bool:
+        if row >= self.rows:
+            return False
+        if row < 0:
+            return False
+        if col >= self.rows:
+            return False
+        if col < 0:
+            return False
         tile: Tile = self.grid[row][col]
         gap_tile: Tile = self.grid[self.gap_row][self.gap_col]
 

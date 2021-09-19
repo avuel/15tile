@@ -1,9 +1,8 @@
 import pygame
 import pygame.freetype
-import my_algorithm
+from my_algorithm import h
 from Grid import Grid
 from Button import Button
-from typing import Tuple
 
 class Game:
     def __init__(self, grid_width: int, extra_width: int, clock, fps: int, rows: int) -> None:

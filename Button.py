@@ -1,20 +1,20 @@
 import pygame
 import pygame.freetype
-from typing import Tuple
+from colors import Color
 
 class Button:
-    def __init__(self, name: str, x: int, y: int, width: int, height: int, button_color, text: str, text_x: int, text_y: int, text_color, border_color) -> None:
+    def __init__(self, name: str, x: int, y: int, width: int, height: int, button_color: Color, text: str, text_x: int, text_y: int, text_color: Color, border_color: Color) -> None:
         self.name = name
         self.x: int = x
         self.y: int = y
-        self.button_color: Tuple(int, int, int) = button_color
+        self.button_color: Color = button_color
         self.text: str = text
         self.text_x: int = text_x
         self.text_y: int = text_y
-        self.text_color: Tuple(int, int, int) = text_color
+        self.text_color: Color = text_color
         self.width: int = width
         self.height: int = height
-        self.border_color: Tuple(int, int, int) = border_color
+        self.border_color: Color = border_color
         self.img: pygame.freetype.Font = pygame.freetype.Font('cour.ttf', 36)
 
 

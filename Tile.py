@@ -1,7 +1,6 @@
 import pygame
 import pygame.freetype
 import colors
-from typing import Tuple
 
 
 class Tile:
@@ -12,13 +11,13 @@ class Tile:
         self.x: int = self.row * self.width
         self.y: int = self.col * self.width
         self.rows: int = rows
-        self.color: Tuple(int, int, int) = colors.WHITE
+        self.color: colors.Color = colors.WHITE
         self.num: int = num
-        self.gap_color: Tuple(int, int, int) = colors.DARKGRAY
+        self.gap_color: colors.Color = colors.DARKGRAY
         self.rect: pygame.Rect = pygame.Rect(self.x, self.y, self.width, self.width)
         self.img: pygame.freetype.Font = pygame.freetype.Font('cour.ttf', 48)
         if (self.num == (self.rows*self.rows)):
-            self.color: Tuple(int, int, int) = self.gap_color
+            self.color: colors.Color = self.gap_color
 
     def set_pos(self, row, col) -> None:
         self.row: int = row
@@ -29,7 +28,7 @@ class Tile:
     def get_pos(self) -> int: 
         return self.row, self.col
 
-    def get_color(self) -> Tuple[int, int, int]:
+    def get_color(self) -> colors.Color:
         return self.color
 
     def get_num(self) -> int:
@@ -52,13 +51,13 @@ class Tile:
             self.img.render_to(win, (x-8, y-16), str(self.num), colors.BLACK)
 
     def set_tile(self, color, num) -> None:
-        self.color: Tuple(int, int, int) = color
+        self.color: colors.Color = color
         self.num: int = num
         if (self.num == (self.rows*self.rows)):
-            self.color: Tuple(int, int, int) = self.gap_color
+            self.color: colors.Color = self.gap_color
 
     def swap(self, tile) -> None:
-        new_color: Tuple(int, int, int) = tile.get_color()
+        new_color: colors.Color = tile.get_color()
         new_num: int = tile.get_num()
         tile.set_tile(self.color, self.num)
         self.set_tile(new_color, new_num)

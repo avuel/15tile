@@ -1,5 +1,3 @@
-from Tile import Tile
-
 def h(grid: list):
     sum: int = 0
     for i in range(len(grid)):

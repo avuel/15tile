@@ -14,9 +14,6 @@ If you have a 4x4 puzzle, the solution is
 9  10 11 12
 13 14 15  
 
-You can change the size of the grid by modifying the ROWS variable in the if __name__ == '__main__' statement
-(ROWS = 3 produces a 3x3, ROWS = 4 produces a 4x4)
-
 To play the game, you can either click on a tile next to the gray tile to move that tile over, or use the arrow keys
 to move the blank tile in the direction of the arrow key (it felt more intuitive that way to me).
 
@@ -37,4 +34,3 @@ I did adapt the game but the tile generation and displaying (except for the numb
 
 You must have Python and Pygame installed (I think my Python version is 3.8.8 64-bit and pygame 2.0.1)
 I think all you need to do to run the game is drop the files all into one folder and then run test.py
-Eventually I think I will create a game object and clean up the code in the test.py file

@@ -31,7 +31,7 @@ class Grid:
                     self.gap_col: int = j
                 tile: Tile = Tile(i, j, self.gap, num, self.rows)
                 self.grid[i].append(tile)
-                
+        
         if self.is_solved():
             self.make_grid()
 
@@ -47,9 +47,11 @@ class Grid:
 
 
     def draw(self, win, grid_width, extra_width, time, mins) -> None:
+
         # Fill the screen with white (clear the display essentially)
         win.fill(colors.WHITE, (0, 0, grid_width, grid_width))
         win.fill(colors.GRAY, (grid_width, 0, extra_width, grid_width))
+
         # Draw the tiles
         for row in self.grid:
             for tile in row:
@@ -57,44 +59,6 @@ class Grid:
         
         # Draw the grid lines
         self.draw_gridlines(win)
-
-        # Draw the restart button
-        restart_x: int = grid_width + extra_width // 6
-        restart_y: int = 3 * grid_width // 5
-        restart_width: int = 2 * extra_width // 3
-        restart_height: int = grid_width / 12
-        pygame.draw.rect(win, colors.WHITE, (restart_x, restart_y, restart_width, restart_height))
-        text: pygame.freetype.Font = pygame.freetype.Font('cour.ttf', 36)
-        text.render_to(win, (restart_x + restart_width / 6, restart_y + 7 * restart_height / 20), "restart", colors.BLACK)
-        
-        # Draw border of restart button
-        pygame.draw.line(win, colors.BLACK, (restart_x, restart_y), (restart_x + restart_width, restart_y))
-        pygame.draw.line(win, colors.BLACK, (restart_x, restart_y), (restart_x, restart_y + restart_height))
-        pygame.draw.line(win, colors.BLACK, (restart_x + restart_width, restart_y), (restart_x + restart_width, restart_y + restart_height))
-        pygame.draw.line(win, colors.BLACK, (restart_x, restart_y + restart_height), (restart_x + restart_width, restart_y + restart_height))
-
-        # Draw the timer window
-        timer_x: int = grid_width + extra_width // 6
-        timer_y: int = grid_width // 5
-        timer_width: int = 2 * extra_width // 3
-        timer_height: int = grid_width / 12
-        pygame.draw.rect(win, colors.WHITE, (timer_x, timer_y, timer_width, timer_height))
-        #if time < 60000:
-        #    text.render_to(win, (timer_x + timer_width / 4, timer_y + timer_height / 3), "{:.2f}".format(time / 1000) + "s", colors.BLACK)
-        #else:
-        if mins < 10:
-            text.render_to(win, (timer_x + (32 * timer_width / 100), timer_y + (7 * timer_height / 20)), f"{mins:01d}" + ":" + f"{(time - time % 100) // 1000:02d}", colors.BLACK)
-        else:
-            text.render_to(win, (timer_x + (32 * timer_width / 100) - 22, timer_y + (7 * timer_height / 20)), f"{mins:02d}" + ":" + f"{(time - time % 100) // 1000:02d}", colors.BLACK)
-            
-        # Draw border of timer button
-        pygame.draw.line(win, colors.BLACK, (timer_x, timer_y), (timer_x + timer_width, timer_y))
-        pygame.draw.line(win, colors.BLACK, (timer_x, timer_y), (timer_x, timer_y + restart_height))
-        pygame.draw.line(win, colors.BLACK, (timer_x + timer_width, timer_y), (timer_x + timer_width, timer_y + timer_height))
-        pygame.draw.line(win, colors.BLACK, (timer_x, timer_y + timer_height), (timer_x + timer_width, timer_y + timer_height))
-
-        # Update the display
-        pygame.display.update()
 
 
 

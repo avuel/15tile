@@ -1,115 +1,99 @@
 import pygame
 import pygame.freetype
-import my_algorithm
-from Grid import Grid
+import colors
+from Game import Game
+from typing import Tuple
 
-def get_clicked_pos(x: int, y: int, rows: int, width: int) -> int:
-    gap: int = width // rows
 
-    # Find the row, column that the mouse click occured in
-    row: int = y // gap
-    col: int = x // gap
+def main() -> None:
+    # Rows of the game
+    rows: int = 0
 
-    return row, col
+    # Get the rows from the user
+    while (rows < 3) or (rows > 10):
+        rows: int = int(input("How many rows (3-10): "))
 
-def main(win, width: int, clock, fps: int, rows: int):
-    extra_width: int = width % 960
-    grid_width: int = width - extra_width
-    grid: Grid = Grid(grid_width, rows)
+    # 1280x960 window, use (0,0) to (960,960) for grid, (960,0) to (1280,960) as the side bar for restart button/timer/click counter/fps counter
+    grid_width: int = 960
+    extra_width: int = 320
 
-    run: bool = True
-    solved: bool = False
-    time: int = 0
-    mins: int = 0
-    while run:
-        # Control the framerate
-        clock.tick(fps)
-
-        if not solved:
-            time += clock.get_time()
-            if (time // 60000) > 0:
-                mins += 1
-                time = time - 60000
-
-        # Draw the grid
-        grid.draw(win, grid_width, extra_width, time, mins)
-
-        for event in pygame.event.get():
-            
-            # See if we want to quit
-            if event.type == pygame.QUIT:
-                run = False
-                break
-            
-            # Check if left mouse was pressed
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    pos = pygame.mouse.get_pos()
-                    y,x = pos
-
-                    # If we are in the grid and we have not solved the puzzle, try to move
-                    if (y <= grid_width) and (not solved):
-                        row, col = get_clicked_pos(x, y, rows, grid_width)
-                        if grid.move_tile(row, col):
-                            grid.draw(win, grid_width, extra_width, time, mins)
-                            solved: bool = grid.is_solved()
-
-                    # Otherwise, if we are out of the grid and we click on restart, restart (even if solved)
-                    else:
-                        restart_x: int = grid_width + extra_width // 6
-                        restart_y: int = 3 * grid_width // 5
-                        restart_width: int = 2 * extra_width // 3
-                        restart_height: int = grid_width / 12
-
-                        if (y >= restart_x) and (y <= (restart_x + restart_width)):
-                            if (x >= restart_y) and (x <= (restart_y + restart_height)):
-                                grid.make_grid()
-                                time = 0
-                                mins = 0
-
-            elif solved:
-                continue
-
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    if grid.move_left():
-                        grid.draw(win, grid_width, extra_width, time, mins)
-                        solved: bool = grid.is_solved()
-
-                elif event.key == pygame.K_RIGHT:
-                    if grid.move_right():
-                        grid.draw(win, grid_width, extra_width, time, mins)
-                        solved: bool = grid.is_solved()
-
-                elif event.key == pygame.K_DOWN:
-                    if grid.move_down():
-                        grid.draw(win, grid_width, extra_width, time, mins)
-                        solved: bool = grid.is_solved()
-
-                elif event.key == pygame.K_UP:
-                    if grid.move_up():
-                        grid.draw(win, grid_width, extra_width, time, mins)
-                        solved: bool = grid.is_solved()
-    
-    pygame.quit()
-
-if __name__ == '__main__':
-    ROWS: int = 0
-    while (ROWS < 3) or (ROWS > 10):
-        ROWS: int = int(input("How many rows (3-10): "))
-        print()
-
-    # Width (and height since we are going to be using a square) of the screen
-    GRID_WIDTH: int = 960
-    EXTRA_WIDTH: int = 320
     # Set the display for the window
-    WIN = pygame.display.set_mode((GRID_WIDTH + EXTRA_WIDTH, GRID_WIDTH))
+    win = pygame.display.set_mode((grid_width + extra_width, grid_width))
 
     # Set the name of the window
     pygame.display.set_caption("Fortnite 2")
     pygame.freetype.init()
-    
+
     # Set framerate of the game
-    FPS: int = 60
-    CLOCK = pygame.time.Clock()
-    main(WIN, GRID_WIDTH + EXTRA_WIDTH, CLOCK, FPS, ROWS)
+    fps: int = 60
+    clock = pygame.time.Clock()
+
+    # Constants we are going to use for the restart button
+    restart_name: str = "Restart Button"
+    restart_x: int = grid_width + extra_width // 6
+    restart_y: int = 3 * grid_width // 5
+    restart_width: int = 2 * extra_width // 3
+    restart_height: int = grid_width / 12
+    restart_button_color: Tuple(int, int, int) = colors.WHITE
+    restart_text: str = "restart"
+    restart_text_x: int = restart_x + restart_width / 6
+    restart_text_y: int = restart_y + (7 * restart_height / 20)
+    restart_text_color: Tuple(int, int, int) = colors.BLACK
+    restart_border_color: Tuple(int, int, int) = colors.BLACK
+
+    # Constants we are going to use for the timer
+    timer_name: str = "Timer"
+    timer_x: int = restart_x
+    timer_y: int = grid_width // 5
+    timer_width: int = restart_width
+    timer_height: int = restart_height
+    timer_button_color: Tuple(int, int, int) = colors.WHITE
+    timer_text: str = None
+    timer_text_x: int = timer_x + (32 * timer_width / 100)
+    timer_text_y: int = timer_y + (7 * timer_height / 20)
+    timer_text_color: Tuple(int, int, int) = colors.BLACK
+    timer_border_color: Tuple(int, int, int) = colors.BLACK
+
+    # Constants we are going to use for the click counter
+    clicks_name: str = "Clicks Counter"
+    clicks_x: int = restart_x
+    clicks_y: int = (timer_y + restart_y) // 2
+    clicks_width: int = restart_width
+    clicks_height: int = restart_height
+    clicks_button_color: Tuple(int, int, int) = colors.WHITE
+    clicks_text: str = None
+    clicks_text_x: int = clicks_x + (64 * clicks_width / 100)
+    clicks_text_y: int = clicks_y + (7 * clicks_height / 20)
+    clicks_text_color: Tuple(int, int, int) = colors.BLACK
+    clicks_border_color: Tuple(int, int, int) = colors.BLACK
+    
+
+    # Constants we are going to use for the fps counter
+    fps_name: str = "Fps Counter"
+    fps_x: int = None
+    fps_y: int = None
+    fps_width: int = None
+    fps_height: int = None
+    fps_button_color: Tuple(int, int, int) = None
+    fps_text: str = None
+    fps_text_x: int = grid_width + extra_width - 39
+    fps_text_y: int = 4
+    fps_text_color: Tuple(int, int, int) = colors.BLACK
+    fps_border_color: Tuple(int, int, int) = None
+
+    game: Game = Game(grid_width, extra_width, clock, fps, rows)
+    game.add_button(restart_name, restart_x, restart_y, restart_width, restart_height, restart_button_color, restart_text, restart_text_x, restart_text_y, restart_text_color, restart_border_color)
+    game.add_button(timer_name, timer_x, timer_y, timer_width, timer_height, timer_button_color, timer_text, timer_text_x, timer_text_y, timer_text_color, timer_border_color)
+    game.add_button(fps_name, fps_x, fps_y, fps_width, fps_height, fps_button_color, fps_text, fps_text_x, fps_text_y, fps_text_color, fps_border_color)
+    game.add_button(clicks_name, clicks_x, clicks_y, clicks_width, clicks_height, clicks_button_color, clicks_text, clicks_text_x, clicks_text_y, clicks_text_color, clicks_border_color)
+
+    # Update the game while the game is running
+    while (game.is_running()):
+        game.update(win)
+
+    # Quit once the game is no longer running
+    pygame.quit()
+    
+
+if __name__ == '__main__':
+    main()

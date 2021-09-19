@@ -1,4 +1,12 @@
 from Tile import Tile
 
-def h(tile: Tile):
-    return tile.pos_diff()
+def h(grid: list):
+    sum: int = 0
+    for i in range(len(grid)):
+        row = i // 4
+        col = i % 4
+        end_row = grid[i] // 4
+        end_col = grid[i] % 4
+        sum += (row - end_row) + (col - end_col)
+    
+    return sum

@@ -5,7 +5,7 @@ from typing import Tuple
 
 
 class Tile:
-    def __init__(self, row, col, width, num, rows) -> None:
+    def __init__(self, row: int, col: int, width: int, num: int, rows: int) -> None:
         self.row: int = row
         self.col: int  = col
         self.width: int = width

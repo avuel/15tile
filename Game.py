@@ -1,8 +1,13 @@
 import pygame
 import pygame.freetype
-from my_algorithm import h
+import numpy as np
+from collections import deque
 from Grid import Grid
 from Button import Button
+from Tile import Tile
+from typing import Deque, List
+#sys.setrecursionlimit(4000)
+#print(sys.getrecursionlimit())
 
 class Game:
     def __init__(self, grid_width: int, extra_width: int, clock, fps: int, rows: int) -> None:
@@ -19,6 +24,7 @@ class Game:
         self.time: int = 0
         self.mins: int = 0
         self.clicks: int = 0
+        print(self.solve_grid())
 
 
 
@@ -135,6 +141,7 @@ class Game:
                             if (x >= restart_y) and (x <= (restart_y + restart_height)):
                                 self.grid.make_grid()
                                 self.solved: bool = self.grid.is_solved()
+                                print(self.solve_grid())
                                 self.time: int = 0
                                 self.mins: int = 0
                                 self.clicks: int = 0
@@ -163,3 +170,183 @@ class Game:
                     if self.grid.move_up():
                         self.solved: bool = self.grid.is_solved()
                         self.clicks: int = self.clicks + 1
+
+            #print(self.convert_grid())
+
+
+
+    def convert_grid(self) -> List[int]:
+        grid: List[int] = list(range(0, (self.rows * self.rows)))
+        tiles: List[Tile] = self.grid.get_grid()
+        for i in range(len(tiles)):
+            for j in range(len(tiles[i])):
+                #num = grid[j][i].get_num()
+                #print(num)
+                grid[self.rows*i + j] = tiles[j][i].get_num()
+
+        return grid
+
+
+    
+    def solve_grid(self) -> bool:
+        start_grid: List[int] = self.convert_grid()
+        f_bound: int = 50
+        F_BOUND: int = 55
+
+        while (f_bound < F_BOUND):
+            path: Deque[List[int]] = []
+            path.append(start_grid)
+            explored: List[List[int]] = []
+            if self.explore(path, explored, f_bound):
+                if len(path) > 0:
+                    if self.h(path[-1]) == 0:
+                        break
+            f_bound: int = f_bound + 5
+        
+        if f_bound >= F_BOUND:
+            print("didnt find")
+        
+        else:
+            print("found in " + str(len(path)) + " steps")
+            print("visited a total of " + str(len(explored)) + " nodes")
+
+
+    def h(self, grid: List[int]) -> int:
+        sum: int = 0
+        for i in range(len(grid)):
+            row: int = i // self.rows
+            col: int = i % self.rows
+            end_row: int = (grid[i] - 1) // self.rows
+            end_col: int = (grid[i] - 1) % self.rows
+            sum: int = sum + abs(row - end_row) + abs(col - end_col)
+
+        return sum
+
+
+    def explore(self, path: Deque[List[int]], explored: List[List[int]], f_bound: int):
+        # If our path is empty we have no states left to search, so return
+        if len(path) == 0:
+            return False
+
+        current = path[-1]
+        print(current)
+        # If we are looking at a state outside of our bounds, we do not want to continue so return
+        if (self.h(current) + len(path)) > f_bound:
+            return False
+
+        # If our heuristic is 0, we have found a solution path (so stop searching)
+        if (self.h(current) == 0):
+            return False
+
+        # Find the current position of the gap so we can check available moves
+        gap_pos = current.index(self.rows * self.rows)
+        visited: bool = False
+
+        # Left (column > 0)
+        if (gap_pos % self.rows) > 0:
+            print("left")
+            current[gap_pos], current[gap_pos - 1] = current[gap_pos - 1], current[gap_pos]
+            a = np.array(current)
+
+            # Check if we visited this before on our current path
+            for state in path:
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+                    break
+            
+            # Or if we have explored this state in a different path
+            for state in explored:
+                if visited:
+                    break
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+
+            # If we have not visited it before, add it to the current path and then explore that path
+            if not visited:
+                path.append(current)
+                self.explore(path, explored, f_bound)
+                    
+
+        # Right (column < self.rows (max columns))
+        if (gap_pos % self.rows) < (self.rows - 1):
+            print("right")
+            current[gap_pos], current[gap_pos + 1] = current[gap_pos + 1], current[gap_pos]
+            a = np.array(current)
+
+            # Check if we visited this before on our current path
+            for state in path:
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+                    break
+            
+            # Or if we have explored this state in a different path
+            for state in explored:
+                if visited:
+                    break
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+
+            # If we have not visited it before, add it to the current path and then explore that path
+            if not visited:
+                path.append(current)
+                self.explore(path, explored, f_bound)
+
+        # Up (row > 0)
+        if (gap_pos // self.rows) > 0:
+            print("up")
+            current[gap_pos], current[gap_pos - self.rows] = current[gap_pos - self.rows], current[gap_pos]
+            a = np.array(current)
+
+            # Check if we visited this before on our current path
+            for state in path:
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+                    break
+            
+            # Or if we have explored this state in a different path
+            for state in explored:
+                if visited:
+                    break
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+
+            # If we have not visited it before, add it to the current path and then explore that path
+            if not visited:
+                path.append(current)
+                self.explore(path, explored, f_bound)
+
+        # Down (row < self.rows):
+        if (gap_pos // self.rows) < (self.rows - 1):
+            print("down")
+            current[gap_pos], current[gap_pos + self.rows] = current[gap_pos + self.rows], current[gap_pos]
+            a = np.array(current)
+
+            # Check if we visited this before on our current path
+            for state in path:
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+                    break
+            
+            # Or if we have explored this state in a different path
+            for state in explored:
+                if visited:
+                    break
+                b = np.array(state)
+                if (a == b).all():
+                    visited: bool = True
+
+            # If we have not visited it before, add it to the current path and then explore that path
+            if not visited:
+                path.append(current)
+                self.explore(path, explored, f_bound)
+
+        # This means we have explored all the posibilites of a node and cannot move (at least to a new state)
+        explored.append(path.pop())
+        return True

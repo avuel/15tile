@@ -1,6 +1,6 @@
 import pygame
 import pygame.freetype
-import Buttons as b
+import buttons as b
 from Game import Game
 
 
@@ -9,8 +9,8 @@ def main() -> None:
     rows: int = 0
 
     # Get the rows from the user
-    while (rows < 3) or (rows > 10):
-        rows: int = int(input("How many rows (3-10): "))
+    while (rows < 2) or (rows > 10):
+        rows: int = int(input("How many rows (2-10): "))
 
     # 1280x960 window, use (0,0) to (960,960) for grid, (960,0) to (1280,960) as the side bar for restart button/timer/click counter/fps counter
     grid_width: int = 960

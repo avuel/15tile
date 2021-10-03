@@ -3,11 +3,12 @@ import pygame.freetype
 import colors
 from random import shuffle
 from Tile import Tile
+from typing import List
 
 class Grid:
     def __init__(self, width: int, rows: int) -> None:
         self.rows: int = rows
-        self.grid: list[Tile] = []
+        self.grid: List[Tile] = []
         self.width: int = width
         self.gap: int = self.width // self.rows
         self.gap_row: int = None
@@ -18,9 +19,11 @@ class Grid:
 
 
     def make_grid(self) -> None:
-        self.grid: list[Tile] = []
-        nums: list[int] = list(range(1, (self.rows * self.rows) + 1))
+        self.grid: List[Tile] = []
+        nums: List[int] = list(range(1, (self.rows * self.rows) + 1))
         shuffle(nums)
+        while (not self.solvable(nums)):
+            shuffle(nums)
         for i in range(self.rows):
             self.grid.append([])
 
@@ -34,6 +37,16 @@ class Grid:
         
         if self.is_solved():
             self.make_grid()
+
+
+
+    def get_grid(self):
+        return self.grid
+
+
+
+    def get_gap(self) -> int:
+        return (self.rows * self.gap_col) + self.gap_row
 
 
 
@@ -135,3 +148,30 @@ class Grid:
                     return False
         
         return True
+
+    
+    def solvable(self, nums: List[int]) -> bool:
+        inversions: int = 0
+        for i in range(len(nums)):
+            if nums[i] == 1:
+                continue
+
+            if nums[i] == (self.rows * self.rows):
+                gap_row = i // self.rows
+                continue
+
+            for j in range(i + 1, len(nums)):
+                if nums[i] > nums[j]:
+                    inversions: int = inversions + 1
+
+        if (self.rows % 2) == 0:
+            if ((inversions % 2) != (gap_row % 2)):
+                return True
+            else:
+                return False
+
+        else:
+            if (inversions % 2) == 0:
+                return True
+            else:
+                return False

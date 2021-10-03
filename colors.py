@@ -1,5 +1,6 @@
 from typing import NewType
-Color = (int, int, int)
+
+Color = NewType('Color', (int, int, int))
 # Colors
 WHITE: Color = (255, 255, 255)
 BLACK: Color = (0, 0, 0)

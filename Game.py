@@ -200,8 +200,8 @@ class Game:
             path.append(start_grid)
             moves.append(-1)
             explored: List[List[int]] = []
-
-            if self.explore(path, explored, moves, f_bound):
+            gap: int = self.grid.get_gap()
+            if self.explore(path, explored, moves, gap, f_bound):
                 if self.h(path[-1]) == 0:
                     break
 
@@ -247,49 +247,29 @@ class Game:
         return sum
 
 
-    def explore(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], f_bound: int) -> bool:
+    def explore(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (self.h(path[-1]) == 0):
             return True
-
-        for i in range(len(path[-1])):
-            if path[-1][i] == (self.rows * self.rows):
-                gap: int = i
 
         # If we moved right last (1), dont try to move left
         if moves[-1] !=  1:
             if self.move_left(path, explored, moves, gap, f_bound):
-                gap: int = gap - 1
-                self.explore(path, explored, moves, f_bound)
-        
-        for i in range(len(path[-1])):
-            if path[-1][i] == (self.rows * self.rows):
-                gap: int = i
+                self.explore(path, explored, moves, gap - 1, f_bound)
 
         # If we moved down last (3), dont try to move up
         if (moves[-1] != 3):
             if self.move_up(path, explored, moves, gap, f_bound):
-                gap: int = gap - self.rows
-                self.explore(path, explored, moves, f_bound)
-
-        for i in range(len(path[-1])):
-            if path[-1][i] == (self.rows * self.rows):
-                gap: int = i
+                self.explore(path, explored, moves, gap - self.rows, f_bound)
 
         # If we moved left last (0)
         if moves[-1] != 0:
             if self.move_right(path, explored, moves, gap, f_bound):
-                gap: int = gap + 1
-                self.explore(path, explored, moves, f_bound)
-
-        for i in range(len(path[-1])):
-            if path[-1][i] == (self.rows * self.rows):
-                gap: int = i
+                self.explore(path, explored, moves, gap + 1, f_bound)
 
         # If we moved up last (2), dont try to move down
         if moves[-1] != 2:
             if self.move_down(path, explored, moves, gap, f_bound):
-                gap: int = gap + self.rows
-                self.explore(path, explored, moves, f_bound)
+                self.explore(path, explored, moves, gap + self.rows, f_bound)
 
         if (self.h(path[-1]) == 0):
             return True
@@ -320,7 +300,6 @@ class Game:
             f = self.h(grid) + len(path)
             
             if f > f_bound:
-                explored.append(grid)
                 return False
 
             for state in path:
@@ -346,7 +325,6 @@ class Game:
             f = self.h(grid) + len(path)
 
             if f > f_bound:
-                explored.append(grid)
                 return False
 
             for state in path:
@@ -372,7 +350,6 @@ class Game:
 
             f = self.h(grid) + len(path)
             if f > f_bound:
-                explored.append(grid)
                 return False
 
             for state in path:
@@ -398,7 +375,6 @@ class Game:
 
             f = self.h(grid) + len(path)
             if f > f_bound:
-                explored.append(grid)
                 return False
 
             for state in path:

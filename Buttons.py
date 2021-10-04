@@ -4,7 +4,7 @@ import colors
 grid_width: int = 960
 extra_width: int = 320
 
-rest_name: str = "Restart Button"
+rest_name: str = "Restart"
 rest_x: int = grid_width + extra_width // 6
 rest_y: int = 3 * grid_width // 5
 rest_wdth: int = 2 * extra_width // 3
@@ -54,3 +54,16 @@ fps_txt_x: int = grid_width + extra_width - 40
 fps_txt_y: int = 4
 fps_txt_clr: colors.Color = colors.BLACK
 fps_border_clr: colors.Color = None
+
+# Constants we are going to use for the fps counter
+sol_name: str = "Solver"
+sol_x: int = grid_width + extra_width // 6
+sol_y: int = 7 * grid_width // 8
+sol_wdth: int = 2 * extra_width // 3
+sol_hght: int = grid_width / 12
+sol_btn_clr: colors.Color = colors.WHITE
+sol_txt: str = "solve"
+sol_txt_x: int = sol_x + sol_wdth / 4
+sol_txt_y: int = sol_y + (7 * sol_hght / 20)
+sol_txt_clr: colors.Color = colors.BLACK
+sol_border_clr: colors.Color = colors.BLACK

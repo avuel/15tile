@@ -1,11 +1,12 @@
 import pygame
 import pygame.freetype
-import numpy as np
+import buttons
 from collections import deque
 from Grid import Grid
 from Button import Button
 from Tile import Tile
 from typing import Deque, List
+from copy import deepcopy
 #sys.setrecursionlimit(4000)
 #print(sys.getrecursionlimit())
 
@@ -17,14 +18,14 @@ class Game:
         self.clock = clock
         self.fps: int = fps
         self.rows: int = rows
-        self.buttons: list(Button) = []
+        self.buttons: List[Button] = []
 
         self.running: bool = True
         self.solved: bool = False
         self.time: int = 0
         self.mins: int = 0
         self.clicks: int = 0
-        print(self.solve_grid())
+        self.solve_grid()
 
 
 
@@ -132,13 +133,13 @@ class Game:
 
                     # Otherwise, if we are out of the grid and we click on restart, restart (even if solved)
                     else:
-                        restart_x: int = self.grid_width + self.extra_width // 6
-                        restart_y: int = 3 * self.grid_width // 5
-                        restart_width: int = 2 * self.extra_width // 3
-                        restart_height: int = self.grid_width / 12
+                        #restart_x: int = self.grid_width + self.extra_width // 6
+                        #restart_y: int = 3 * self.grid_width // 5
+                        #restart_width: int = 2 * self.extra_width // 3
+                        #restart_height: int = self.grid_width / 12
 
-                        if (y >= restart_x) and (y <= (restart_x + restart_width)):
-                            if (x >= restart_y) and (x <= (restart_y + restart_height)):
+                        if (y >= buttons.rest_x) and (y <= (buttons.rest_x + buttons.rest_wdth)):
+                            if (x >= buttons.rest_y) and (x <= (buttons.rest_y + buttons.rest_hght)):
                                 self.grid.make_grid()
                                 self.solved: bool = self.grid.is_solved()
                                 print(self.solve_grid())
@@ -171,7 +172,7 @@ class Game:
                         self.solved: bool = self.grid.is_solved()
                         self.clicks: int = self.clicks + 1
 
-            #print(self.convert_grid())
+            
 
 
 
@@ -190,25 +191,48 @@ class Game:
     
     def solve_grid(self) -> bool:
         start_grid: List[int] = self.convert_grid()
-        f_bound: int = 50
-        F_BOUND: int = 55
-
-        while (f_bound < F_BOUND):
-            path: Deque[List[int]] = []
-            path.append(start_grid)
-            explored: List[List[int]] = []
-            if self.explore(path, explored, f_bound):
-                if len(path) > 0:
-                    if self.h(path[-1]) == 0:
-                        break
-            f_bound: int = f_bound + 5
+        f_bound: int = 15
+        MAX_BOUND: int = 100
         
-        if f_bound >= F_BOUND:
+        while(f_bound <= MAX_BOUND):
+            path: Deque[List[int]] = []
+            moves: Deque[int] = []
+            path.append(start_grid)
+            moves.append(-1)
+            explored: List[List[int]] = []
+
+            if self.explore(path, explored, moves, f_bound):
+                if self.h(path[-1]) == 0:
+                    break
+
+            f_bound: int = f_bound + 1
+
+        if f_bound > MAX_BOUND:
             print("didnt find")
         
-        else:
-            print("found in " + str(len(path)) + " steps")
+        elif self.h(path[-1]) == 0:
+            print("total of " + str(len(path) - 1) + " moves")
             print("visited a total of " + str(len(explored)) + " nodes")
+            count: int = 0
+            for move in moves:
+                if move == -1:
+                    print("start:")
+                else:
+                    print(str(count) + ":", end =' ')
+                    if move == 0:
+                        print("left")
+                    elif move == 1:
+                        print("right")
+                    elif move == 2:
+                        print("up")
+                    elif move == 3:
+                        print("down")
+                count: int = count + 1
+
+            print()
+        
+        else:
+            print("didnt find")
 
 
     def h(self, grid: List[int]) -> int:
@@ -223,130 +247,170 @@ class Game:
         return sum
 
 
-    def explore(self, path: Deque[List[int]], explored: List[List[int]], f_bound: int):
-        # If our path is empty we have no states left to search, so return
-        if len(path) == 0:
+    def explore(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], f_bound: int) -> bool:
+        if (self.h(path[-1]) == 0):
+            return True
+
+        for i in range(len(path[-1])):
+            if path[-1][i] == (self.rows * self.rows):
+                gap: int = i
+
+        # If we moved right last (1), dont try to move left
+        if moves[-1] !=  1:
+            if self.move_left(path, explored, moves, gap, f_bound):
+                gap: int = gap - 1
+                self.explore(path, explored, moves, f_bound)
+        
+        for i in range(len(path[-1])):
+            if path[-1][i] == (self.rows * self.rows):
+                gap: int = i
+
+        # If we moved down last (3), dont try to move up
+        if (moves[-1] != 3):
+            if self.move_up(path, explored, moves, gap, f_bound):
+                gap: int = gap - self.rows
+                self.explore(path, explored, moves, f_bound)
+
+        for i in range(len(path[-1])):
+            if path[-1][i] == (self.rows * self.rows):
+                gap: int = i
+
+        # If we moved left last (0)
+        if moves[-1] != 0:
+            if self.move_right(path, explored, moves, gap, f_bound):
+                gap: int = gap + 1
+                self.explore(path, explored, moves, f_bound)
+
+        for i in range(len(path[-1])):
+            if path[-1][i] == (self.rows * self.rows):
+                gap: int = i
+
+        # If we moved up last (2), dont try to move down
+        if moves[-1] != 2:
+            if self.move_down(path, explored, moves, gap, f_bound):
+                gap: int = gap + self.rows
+                self.explore(path, explored, moves, f_bound)
+
+        if (self.h(path[-1]) == 0):
+            return True
+
+        popped: List[int] = path.pop()
+        moves.pop()
+                
+        explore: bool = True
+        for state in explored:
+            if state == popped:
+                explore = False
+
+        if explore:
+            explored.append(popped)
+        
+        if (len(path)) == 0:
             return False
 
-        current = path[-1]
-        print(current)
-        # If we are looking at a state outside of our bounds, we do not want to continue so return
-        if (self.h(current) + len(path)) > f_bound:
+        if (len(moves)) == 0:
             return False
 
-        # If our heuristic is 0, we have found a solution path (so stop searching)
-        if (self.h(current) == 0):
-            return False
 
-        # Find the current position of the gap so we can check available moves
-        gap_pos = current.index(self.rows * self.rows)
-        visited: bool = False
-
-        # Left (column > 0)
-        if (gap_pos % self.rows) > 0:
-            print("left")
-            current[gap_pos], current[gap_pos - 1] = current[gap_pos - 1], current[gap_pos]
-            a = np.array(current)
-
-            # Check if we visited this before on our current path
-            for state in path:
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
-                    break
+    # Move code 0
+    def move_left(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+        if (gap % self.rows) > 0:
+            grid = deepcopy(path[-1])
+            grid[gap - 1], grid[gap] = grid[gap], grid[gap - 1]
+            f = self.h(grid) + len(path)
             
-            # Or if we have explored this state in a different path
-            for state in explored:
-                if visited:
-                    break
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
+            if f > f_bound:
+                explored.append(grid)
+                return False
 
-            # If we have not visited it before, add it to the current path and then explore that path
-            if not visited:
-                path.append(current)
-                self.explore(path, explored, f_bound)
-                    
-
-        # Right (column < self.rows (max columns))
-        if (gap_pos % self.rows) < (self.rows - 1):
-            print("right")
-            current[gap_pos], current[gap_pos + 1] = current[gap_pos + 1], current[gap_pos]
-            a = np.array(current)
-
-            # Check if we visited this before on our current path
             for state in path:
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
-                    break
-            
-            # Or if we have explored this state in a different path
+                if state == grid:
+                    return False
+
             for state in explored:
-                if visited:
-                    break
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
+                if state == grid:
+                    return False
 
-            # If we have not visited it before, add it to the current path and then explore that path
-            if not visited:
-                path.append(current)
-                self.explore(path, explored, f_bound)
+            path.append(grid)
+            moves.append(0)
+            return True
 
-        # Up (row > 0)
-        if (gap_pos // self.rows) > 0:
-            print("up")
-            current[gap_pos], current[gap_pos - self.rows] = current[gap_pos - self.rows], current[gap_pos]
-            a = np.array(current)
+        return False
 
-            # Check if we visited this before on our current path
+
+    # Move code 1
+    def move_right(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+        if (gap % self.rows) < (self.rows - 1):
+            grid = deepcopy(path[-1])
+            grid[gap + 1], grid[gap] = grid[gap], grid[gap + 1]
+            f = self.h(grid) + len(path)
+
+            if f > f_bound:
+                explored.append(grid)
+                return False
+
             for state in path:
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
-                    break
-            
-            # Or if we have explored this state in a different path
+                if state == grid:
+                    return False
+
             for state in explored:
-                if visited:
-                    break
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
+                if state == grid:
+                    return False
+            
+            path.append(grid)
+            moves.append(1)
+            return True
+            
+        return False
 
-            # If we have not visited it before, add it to the current path and then explore that path
-            if not visited:
-                path.append(current)
-                self.explore(path, explored, f_bound)
 
-        # Down (row < self.rows):
-        if (gap_pos // self.rows) < (self.rows - 1):
-            print("down")
-            current[gap_pos], current[gap_pos + self.rows] = current[gap_pos + self.rows], current[gap_pos]
-            a = np.array(current)
+    # Move code 2
+    def move_up(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+        if (gap // self.rows) > 0:
+            grid = deepcopy(path[-1])
+            grid[gap - self.rows], grid[gap] = grid[gap], grid[gap - self.rows]
 
-            # Check if we visited this before on our current path
+            f = self.h(grid) + len(path)
+            if f > f_bound:
+                explored.append(grid)
+                return False
+
             for state in path:
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
-                    break
-            
-            # Or if we have explored this state in a different path
+                if state == grid:
+                    return False
+
             for state in explored:
-                if visited:
-                    break
-                b = np.array(state)
-                if (a == b).all():
-                    visited: bool = True
+                if state == grid:
+                    return False
+            
+            path.append(grid)
+            moves.append(2)
+            return True
+            
+        return False
 
-            # If we have not visited it before, add it to the current path and then explore that path
-            if not visited:
-                path.append(current)
-                self.explore(path, explored, f_bound)
 
-        # This means we have explored all the posibilites of a node and cannot move (at least to a new state)
-        explored.append(path.pop())
-        return True
+    # Move code 3
+    def move_down(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+        if (gap // self.rows) < (self.rows - 1):
+            grid = deepcopy(path[-1])
+            grid[gap + self.rows], grid[gap] = grid[gap], grid[gap + self.rows]
+
+            f = self.h(grid) + len(path)
+            if f > f_bound:
+                explored.append(grid)
+                return False
+
+            for state in path:
+                if state == grid:
+                    return False
+
+            for state in explored:
+                if state == grid:
+                    return False
+        
+            path.append(grid)
+            moves.append(3)
+            return True
+            
+        return False

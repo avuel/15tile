@@ -8,7 +8,7 @@ from typing import List
 class Grid:
     def __init__(self, width: int, rows: int) -> None:
         self.rows: int = rows
-        self.grid: List[Tile] = []
+        self.grid: List[List[Tile]] = []
         self.width: int = width
         self.gap: int = self.width // self.rows
         self.gap_row: int = None
@@ -38,6 +38,10 @@ class Grid:
         if self.is_solved():
             self.make_grid()
 
+        for row in self.grid:
+            for tile in row:
+                print(tile.get_num())
+
 
 
     def get_grid(self):
@@ -47,6 +51,28 @@ class Grid:
 
     def get_gap(self) -> int:
         return (self.rows * self.gap_col) + self.gap_row
+
+
+    def fill_solution(self, move: int) -> None:
+        print(self.gap_row)
+        print(self.gap_col)
+        # Move left
+        if move == 0:
+            self.grid[self.gap_row][self.gap_col - 1].set_color(colors.GREEN)
+
+        # Move right
+        elif move == 1:
+            self.grid[self.gap_row][self.gap_col + 1].set_color(colors.GREEN)
+
+        # Move up
+        elif move == 2:
+            self.grid[self.gap_row - 1][self.gap_col].set_color(colors.GREEN)
+
+        # Move Down
+        elif move == 3:
+            self.grid[self.gap_row + 1][self.gap_col].set_color(colors.GREEN)
+
+        pass
 
 
 

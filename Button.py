@@ -44,6 +44,15 @@ class Button:
 
 
 
+    def set_color(self, color: Color) -> None:
+        self.button_color: Color = color
+
+
+
+    def get_color(self) -> Color:
+        return self.button_color
+
+
     def draw_button(self, win) -> None:
         pygame.draw.rect(win, self.button_color, (self.x, self.y, self.width, self.height))
 

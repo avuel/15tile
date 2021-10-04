@@ -1,14 +1,12 @@
 import pygame
 import pygame.freetype
-import buttons
+import buttons as b
 from collections import deque
 from Grid import Grid
 from Button import Button
 from Tile import Tile
 from typing import Deque, List
 from copy import deepcopy
-#sys.setrecursionlimit(4000)
-#print(sys.getrecursionlimit())
 
 class Game:
     def __init__(self, grid_width: int, extra_width: int, clock, fps: int, rows: int) -> None:
@@ -25,7 +23,8 @@ class Game:
         self.time: int = 0
         self.mins: int = 0
         self.clicks: int = 0
-        self.solve_grid()
+
+        self.moves: Deque[int] = deque([])
 
 
 
@@ -107,7 +106,10 @@ class Game:
             if (self.time // 60000) > 0:
                 self.mins: int = self.mins + 1
                 self.time: int = self.time - 60000
-                
+        
+        if len(self.moves) > 0:
+            self.grid.fill_solution(self.moves[0])
+
         # Draw the game
         self.draw(win)
 
@@ -131,21 +133,38 @@ class Game:
                             self.solved: bool = self.grid.is_solved()
                             self.clicks: int = self.clicks + 1
 
+                            for button in self.buttons:
+                                if button.get_name() == b.sol_name:
+                                    button.set_color(b.sol_off_clr)
+                                    break
+                                
+                            self.moves = []
+
                     # Otherwise, if we are out of the grid and we click on restart, restart (even if solved)
                     else:
-                        #restart_x: int = self.grid_width + self.extra_width // 6
-                        #restart_y: int = 3 * self.grid_width // 5
-                        #restart_width: int = 2 * self.extra_width // 3
-                        #restart_height: int = self.grid_width / 12
-
-                        if (y >= buttons.rest_x) and (y <= (buttons.rest_x + buttons.rest_wdth)):
-                            if (x >= buttons.rest_y) and (x <= (buttons.rest_y + buttons.rest_hght)):
+                        if (y >= b.rest_x) and (y <= (b.rest_x + b.rest_wdth)):
+                            if (x >= b.rest_y) and (x <= (b.rest_y + b.rest_hght)):
                                 self.grid.make_grid()
                                 self.solved: bool = self.grid.is_solved()
-                                print(self.solve_grid())
                                 self.time: int = 0
                                 self.mins: int = 0
                                 self.clicks: int = 0
+
+                            elif self.solved:
+                                continue
+
+                            elif (x >= b.sol_y) and (x <= (b.sol_y + b.sol_hght)):
+                                
+                                self.moves: Deque[int] = self.solve_grid()
+                                if len(self.moves) > 0:
+                                    self.moves.popleft()
+                                    for button in self.buttons:
+                                        if button.get_name() == b.sol_name:
+                                            button.set_color(b.sol_on_clr)
+                                            break
+                                
+                                print(self.moves)
+                    
 
             elif self.solved:
                 continue
@@ -189,14 +208,14 @@ class Game:
 
 
     
-    def solve_grid(self) -> bool:
+    def solve_grid(self) -> Deque[int]:
         start_grid: List[int] = self.convert_grid()
         f_bound: int = 15
         MAX_BOUND: int = 100
         
         while(f_bound <= MAX_BOUND):
-            path: Deque[List[int]] = []
-            moves: Deque[int] = []
+            path: Deque[List[int]] = deque([])
+            moves: Deque[int] = deque([])
             path.append(start_grid)
             moves.append(-1)
             explored: List[List[int]] = []
@@ -208,9 +227,12 @@ class Game:
             f_bound: int = f_bound + 1
 
         if f_bound > MAX_BOUND:
-            print("didnt find")
+            return []
+            #print("didnt find")
         
         elif self.h(path[-1]) == 0:
+            return moves
+            '''
             print("total of " + str(len(path) - 1) + " moves")
             print("visited a total of " + str(len(explored)) + " nodes")
             count: int = 0
@@ -230,9 +252,11 @@ class Game:
                 count: int = count + 1
 
             print()
+            '''
         
         else:
-            print("didnt find")
+            return []
+            #print("didnt find")
 
 
     def h(self, grid: List[int]) -> int:

@@ -19,26 +19,43 @@ class Tile:
         if (self.num == (self.rows*self.rows)):
             self.color: colors.Color = self.gap_color
 
+
+
     def set_pos(self, row, col) -> None:
         self.row: int = row
         self.col: int  = col
         self.x: int = row * self.width
         self.y: int = col * self.width
 
+
+
     def get_pos(self) -> int: 
         return self.row, self.col
+
+
 
     def get_color(self) -> colors.Color:
         return self.color
 
+
+
+    def set_color(self, color: colors.Color) -> None:
+        self.color: colors.Color = color
+
+
+
     def get_num(self) -> int:
         return self.num
+
+
 
     def pos_diff(self, rows) -> int:
         true_row: int = (self.num // rows)
         true_col: int = (self.num - 1) % rows
         return (true_row - self.row) + (true_col - self.col)
     
+
+
     def draw(self, win) -> None:
         if (self.num == (self.rows * self.rows)):
             pygame.draw.rect(win, self.color, self.rect)
@@ -50,17 +67,22 @@ class Tile:
                 x: int = x - 12
             self.img.render_to(win, (x-8, y-16), str(self.num), colors.BLACK)
 
+
+
     def set_tile(self, color, num) -> None:
         self.color: colors.Color = color
         self.num: int = num
         if (self.num == (self.rows*self.rows)):
             self.color: colors.Color = self.gap_color
 
+
+
     def swap(self, tile) -> None:
         new_color: colors.Color = tile.get_color()
         new_num: int = tile.get_num()
         tile.set_tile(self.color, self.num)
         self.set_tile(new_color, new_num)
+
 
 
     def move(self, gap_tile) -> bool:

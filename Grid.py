@@ -8,11 +8,10 @@ from typing import List
 class Grid:
     def __init__(self, width: int, rows: int) -> None:
         self.rows: int = rows
-        self.grid: List[List[Tile]] = []
+        self.grid: List[Tile] = []
         self.width: int = width
         self.gap: int = self.width // self.rows
-        self.gap_row: int = None
-        self.gap_col: int = None
+        self.gap_pos: int = None
         self.solved: bool = False
         self.make_grid()
 
@@ -22,25 +21,26 @@ class Grid:
         self.grid: List[Tile] = []
         nums: List[int] = list(range(1, (self.rows * self.rows) + 1))
         shuffle(nums)
+
         while (not self.solvable(nums)):
             shuffle(nums)
-        for i in range(self.rows):
-            self.grid.append([])
 
-            for j in range(self.rows):
-                num: int = nums[self.rows*j + i]
-                if (num == (self.rows*self.rows)):
-                    self.gap_row: int = i
-                    self.gap_col: int = j
-                tile: Tile = Tile(i, j, self.gap, num, self.rows)
-                self.grid[i].append(tile)
+        for i in range(len(nums)):
+            num: int = nums[i]
+            if (num == (self.rows*self.rows)):
+                self.gap_pos: int = i
+            tile: Tile = Tile(i // self.rows, i % self.rows, self.gap, num, self.rows)
+            self.grid.append(tile)
         
         if self.is_solved():
             self.make_grid()
 
-        for row in self.grid:
-            for tile in row:
-                print(tile.get_num())
+        
+        for i in range(len(self.grid)):
+            print(self.grid[i].get_num(), end=' ')
+            print()
+        print("gap row: " + str(self.gap_pos // self.rows))
+        print("gap col: " + str(self.gap_pos % self.rows))
 
 
 
@@ -50,30 +50,45 @@ class Grid:
 
 
     def get_gap(self) -> int:
-        return (self.rows * self.gap_col) + self.gap_row
+        return self.gap_pos
+
 
 
     def fill_solution(self, move: int) -> None:
-        print(self.gap_row)
-        print(self.gap_col)
         # Move left
         if move == 0:
-            self.grid[self.gap_row][self.gap_col - 1].set_color(colors.GREEN)
+            self.grid[self.gap_col][self.gap_row - 1].set_color(colors.GREEN)
+            print("left")
+            print(self.grid[self.gap_col][self.gap_row - 1].get_num())
 
         # Move right
         elif move == 1:
-            self.grid[self.gap_row][self.gap_col + 1].set_color(colors.GREEN)
+            self.grid[self.gap_col][self.gap_row + 1].set_color(colors.GREEN)
+            print("right")
+            print(self.grid[self.gap_col][self.gap_row + 1].get_num())
 
         # Move up
         elif move == 2:
-            self.grid[self.gap_row - 1][self.gap_col].set_color(colors.GREEN)
+            self.grid[self.gap_col - 1][self.gap_row].set_color(colors.GREEN)
+            print("up")
+            print(self.grid[self.gap_col - 1][self.gap_row].get_num())
 
         # Move Down
         elif move == 3:
-            self.grid[self.gap_row + 1][self.gap_col].set_color(colors.GREEN)
+            self.grid[self.gap_col + 1][self.gap_row].set_color(colors.GREEN)
+            print("down")
+            print(self.grid[self.gap_col + 1][self.gap_row].get_num())
 
-        pass
 
+
+    def update_solver(self, expected_move: int, move: int, gap: int) -> bool:
+        if expected_move == move:
+            self.grid[gap % self.rows][gap // self.rows].set_color(colors.WHITE)
+            print(self.grid[gap % self.rows][gap // self.rows].get_num())
+            print(self.grid[gap % self.rows][gap // self.rows].get_color())
+            return True
+
+        return False
 
 
     def draw_gridlines(self, win) -> None:
@@ -92,9 +107,8 @@ class Grid:
         win.fill(colors.GRAY, (grid_width, 0, extra_width, grid_width))
 
         # Draw the tiles
-        for row in self.grid:
-            for tile in row:
-                tile.draw(win)
+        for tile in self.grid:
+            tile.draw(win)
         
         # Draw the grid lines
         self.draw_gridlines(win)
@@ -110,12 +124,10 @@ class Grid:
             return False
         if col < 0:
             return False
-        tile: Tile = self.grid[row][col]
-        gap_tile: Tile = self.grid[self.gap_row][self.gap_col]
+        pos = self.rows * row + col
 
-        if tile.move(gap_tile):
-            self.gap_row: int = row
-            self.gap_col: int = col
+        if self.grid[pos].move(self.grid[self.gap_pos]):
+            self.gap_pos = pos
             return True
 
         else:
@@ -124,54 +136,53 @@ class Grid:
 
 
     def move_left(self) -> bool:
-        if self.gap_row == 0:
+        if (self.gap_pos % self.rows) == 0:
             return False
 
         else:
-            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row - 1][self.gap_col])
-            self.gap_row: int = self.gap_row - 1
+            self.grid[self.gap_pos].swap(self.grid[self.gap_pos - 1])
+            self.gap_row: int = self.gap_pos - 1
             return True
 
 
 
     def move_right(self) -> bool:
-        if self.gap_row == self.rows - 1:
+        if (self.gap_pos % self.rows) == (self.rows - 1):
             return False
 
         else:
-            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row + 1][self.gap_col])
-            self.gap_row: int = self.gap_row + 1
+            self.grid[self.gap_pos].swap(self.grid[self.gap_pos + 1])
+            self.gap_row: int = self.gap_pos + 1
             return True
 
 
 
     def move_up(self) -> bool:
-        if self.gap_col == 0:
+        if (self.gap_pos // self.rows) == 0:
             return False
 
         else:
-            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row][self.gap_col - 1])
-            self.gap_col: int = self.gap_col - 1
+            self.grid[self.gap_pos].swap(self.grid[self.gap_pos - self.rows])
+            self.gap_pos: int = self.gap_pos - self.rows
             return True
 
 
 
     def move_down(self) -> bool:
-        if self.gap_col == self.rows - 1:
+        if (self.gap_col // self.rows) == (self.rows - 1):
             return False
 
         else:
-            self.grid[self.gap_row][self.gap_col].swap(self.grid[self.gap_row][self.gap_col + 1])
-            self.gap_col: int = self.gap_col + 1
+            self.grid[self.gap_pos].swap(self.grid[self.gap_pos + self.rows])
+            self.gap_pos: int = self.gap_pos + self.rows
             return True
 
 
 
     def is_solved(self) -> bool:
-        for i in range(self.rows):
-            for j in range(self.rows):
-                if self.grid[j][i].get_num() != (self.rows*i + j + 1):
-                    return False
+        for i in range(len(self.grid)):
+            if self.grid[i].get_num() != (i + 1):
+                return False
         
         return True
 

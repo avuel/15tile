@@ -51,13 +51,16 @@ class Game:
 
     def draw(self, win) -> None:
         # Draw the grid (updated tiles)
+        if len(self.moves) > 0:
+            self.grid.fill_solution(self.moves[0])
+
         self.grid.draw(win, self.grid_width, self.extra_width, self.time, self.mins)
 
         # Draw the buttons
         for button in self.buttons:
 
             # Update the text of the timer based on the amount of minutes (hopefully we don't solve it slower than 99 minutes)
-            if (button.get_name() == "Timer"):
+            if (button.get_name() == b.timer_name):
     
                 if (self.mins < 10):
                     time: str = f"{self.mins:01d}" + ":" + f"{(self.time - self.time % 100) // 1000:02d}"
@@ -69,12 +72,12 @@ class Game:
 
                 button.set_text(time)
 
-            elif (button.get_name() == "Fps Counter"):
+            elif (button.get_name() == b.fps_name):
                 button.set_text(str(int(round(self.clock.get_fps()))))
                 button.draw_text(win)
                 continue
 
-            elif (button.get_name() == "Clicks Counter"):
+            elif (button.get_name() == b.clks_name):
                 button.set_text(str(self.clicks))
                 clicks: int = self.clicks
                 shifts_left: int = 0
@@ -84,6 +87,10 @@ class Game:
                     clicks: int = clicks // 100
 
                 button.set_text_x(button.get_x() + (button.get_width() / 2) - shifts_left)
+            
+            elif (button.get_name() == b.sol_name):
+                if len(self.moves) == 0:
+                    button.set_color(b.sol_off_clr)
 
             # Draw the button
             button.draw(win)
@@ -106,9 +113,6 @@ class Game:
             if (self.time // 60000) > 0:
                 self.mins: int = self.mins + 1
                 self.time: int = self.time - 60000
-        
-        if len(self.moves) > 0:
-            self.grid.fill_solution(self.moves[0])
 
         # Draw the game
         self.draw(win)
@@ -129,20 +133,37 @@ class Game:
                     # If we are in the grid and we have not solved the puzzle, try to move
                     if (y <= self.grid_width) and (not self.solved):
                         row, col = self.get_clicked_pos(x, y, self.rows, self.grid_width)
+                        gap1: int = self.grid.get_gap()
+                        print("gap before: " + str(gap1))
                         if self.grid.move_tile(row, col):
                             self.solved: bool = self.grid.is_solved()
                             self.clicks: int = self.clicks + 1
 
-                            for button in self.buttons:
-                                if button.get_name() == b.sol_name:
-                                    button.set_color(b.sol_off_clr)
-                                    break
-                                
-                            self.moves = []
+                            if len(self.moves) > 0:
+                                gap2: int = self.grid.get_gap()
+                                print("gap after: " + str(gap2))
+                                move: int = -1
+                                print(gap2 - gap1)
+                                if (gap2 - gap1) == -1:
+                                    move = 0
+                                elif (gap2 - gap1) == 1:
+                                    move = 1
+                                elif (gap2 - gap1) == -self.rows:
+                                    move = 2
+                                elif (gap2 - gap1) == self.rows:
+                                    move = 3
+                                #if self.grid.update_solver(self.moves[0], move, gap1):
+                                #    self.moves.popleft()
+                                #else:
+                                #    self.moves = []
+                                        
 
-                    # Otherwise, if we are out of the grid and we click on restart, restart (even if solved)
+                    # Otherwise, if we are out of the grid and we click on a button (restart or solve)
                     else:
+                        # Clicked on a button
                         if (y >= b.rest_x) and (y <= (b.rest_x + b.rest_wdth)):
+
+                            # Clicked on restart
                             if (x >= b.rest_y) and (x <= (b.rest_y + b.rest_hght)):
                                 self.grid.make_grid()
                                 self.solved: bool = self.grid.is_solved()
@@ -150,9 +171,18 @@ class Game:
                                 self.mins: int = 0
                                 self.clicks: int = 0
 
+                                for button in self.buttons:
+                                    if button.get_name() == b.sol_name:
+                                        button.set_color(b.sol_off_clr)
+                                        break
+                                
+                                self.moves = []
+
+                            # If we did not click on restart just continue
                             elif self.solved:
                                 continue
-
+                            
+                            # If the puzzle is not solved, check if we clicked on solve
                             elif (x >= b.sol_y) and (x <= (b.sol_y + b.sol_hght)):
                                 
                                 self.moves: Deque[int] = self.solve_grid()

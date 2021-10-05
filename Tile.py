@@ -57,10 +57,10 @@ class Tile:
 
 
     def draw(self, win) -> None:
-        if (self.num == (self.rows * self.rows)):
-            pygame.draw.rect(win, self.color, self.rect)
 
-        else:
+        pygame.draw.rect(win, self.color, self.rect)
+
+        if (self.num != (self.rows * self.rows)):
             x: int = self.x + (self.width / 2)
             y: int = self.y + (self.width / 2)
             if (self.num > 9):
@@ -109,4 +109,3 @@ class Tile:
         
         else:
             return False
-

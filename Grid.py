@@ -35,19 +35,6 @@ class Grid:
         if self.is_solved():
             self.make_grid()
 
-        
-        for i in range(len(self.grid)):
-            print(self.grid[i].get_num(), end=' ')
-            if ((i + 1) % self.rows) == 0:
-                print()
-        
-        print()
-        for i in range(len(self.grid)):
-            print(i, end=' ')
-            if ((i + 1) % self.rows) == 0:
-                print()
-        print()
-        print(self.gap_pos)
 
 
     def get_grid(self):
@@ -63,35 +50,27 @@ class Grid:
     def fill_solution(self, move: int) -> None:
         # Move left
         if move == 0:
-            self.grid[self.gap_col][self.gap_row - 1].set_color(colors.GREEN)
-            print("left")
-            print(self.grid[self.gap_col][self.gap_row - 1].get_num())
+            self.grid[self.gap_pos - 1].set_color(colors.GREEN)
 
         # Move right
         elif move == 1:
-            self.grid[self.gap_col][self.gap_row + 1].set_color(colors.GREEN)
-            print("right")
-            print(self.grid[self.gap_col][self.gap_row + 1].get_num())
+            self.grid[self.gap_pos + 1].set_color(colors.GREEN)
 
         # Move up
         elif move == 2:
-            self.grid[self.gap_col - 1][self.gap_row].set_color(colors.GREEN)
-            print("up")
-            print(self.grid[self.gap_col - 1][self.gap_row].get_num())
+            self.grid[self.gap_pos - self.rows].set_color(colors.GREEN)
 
         # Move Down
         elif move == 3:
-            self.grid[self.gap_col + 1][self.gap_row].set_color(colors.GREEN)
-            print("down")
-            print(self.grid[self.gap_col + 1][self.gap_row].get_num())
+            self.grid[self.gap_pos + self.rows].set_color(colors.GREEN)
 
 
 
     def update_solver(self, expected_move: int, move: int, gap: int) -> bool:
         if expected_move == move:
-            self.grid[gap % self.rows][gap // self.rows].set_color(colors.WHITE)
-            print(self.grid[gap % self.rows][gap // self.rows].get_num())
-            print(self.grid[gap % self.rows][gap // self.rows].get_color())
+            self.grid[gap].set_color(colors.WHITE)
+            print(self.grid[gap].get_num())
+            print(self.grid[gap].get_color())
             return True
 
         return False

@@ -54,6 +54,15 @@ class Game:
         if len(self.moves) > 0:
             self.grid.fill_solution(self.moves[0])
 
+        # If we have no solution moves, make every tile white
+        else:
+            grid: List[Tile] = self.grid.get_grid()
+
+            for tile in grid:
+                if tile.get_color == b.sol_on_clr:
+                    tile.set_color(b.sol_off_clr)
+                    break
+
         self.grid.draw(win, self.grid_width, self.extra_width, self.time, self.mins)
 
         # Draw the buttons
@@ -134,14 +143,12 @@ class Game:
                     if (y <= self.grid_width) and (not self.solved):
                         row, col = self.get_clicked_pos(x, y, self.rows, self.grid_width)
                         gap1: int = self.grid.get_gap()
-                        print("gap before: " + str(gap1))
-                        if self.grid.move_tile(row, col):
+                        if self.grid.move_tile(col, row):
                             self.solved: bool = self.grid.is_solved()
                             self.clicks: int = self.clicks + 1
 
                             if len(self.moves) > 0:
                                 gap2: int = self.grid.get_gap()
-                                print("gap after: " + str(gap2))
                                 move: int = -1
                                 print(gap2 - gap1)
                                 if (gap2 - gap1) == -1:
@@ -152,10 +159,10 @@ class Game:
                                     move = 2
                                 elif (gap2 - gap1) == self.rows:
                                     move = 3
-                                #if self.grid.update_solver(self.moves[0], move, gap1):
-                                #    self.moves.popleft()
-                                #else:
-                                #    self.moves = []
+                                if self.grid.update_solver(self.moves[0], move, gap1):
+                                    self.moves.popleft()
+                                else:
+                                    self.moves = []
                                         
 
                     # Otherwise, if we are out of the grid and we click on a button (restart or solve)
@@ -201,38 +208,62 @@ class Game:
 
             # Handle Keyboard presses, check if the board is solved after each press
             elif event.type == pygame.KEYDOWN:
+                gap: int = self.grid.get_gap()
                 if event.key == pygame.K_LEFT:
                     if self.grid.move_left():
                         self.solved: bool = self.grid.is_solved()
                         self.clicks: int = self.clicks + 1
+                        if len(self.moves) > 0:
+                            if self.moves[0] == 0:
+                                self.grid.update_solver(0, 0, gap)
+                                self.moves.popleft()
+                            else:
+                                self.moves = []
 
                 elif event.key == pygame.K_RIGHT:
                     if self.grid.move_right():
                         self.solved: bool = self.grid.is_solved()
                         self.clicks: int = self.clicks + 1
-
-                elif event.key == pygame.K_DOWN:
-                    if self.grid.move_down():
-                        self.solved: bool = self.grid.is_solved()
-                        self.clicks: int = self.clicks + 1
+                        if len(self.moves) > 0:
+                            if self.moves[0] == 1:
+                                self.grid.update_solver(1, 1, gap)
+                                self.moves.popleft()
+                            else:
+                                self.moves = []
 
                 elif event.key == pygame.K_UP:
                     if self.grid.move_up():
                         self.solved: bool = self.grid.is_solved()
                         self.clicks: int = self.clicks + 1
+                        if len(self.moves) > 0:
+                            if self.moves[0] == 2:
+                                self.grid.update_solver(2, 2, gap)
+                                self.moves.popleft()
+                            else:
+                                self.moves = []
+
+                elif event.key == pygame.K_DOWN:
+                    if self.grid.move_down():
+                        self.solved: bool = self.grid.is_solved()
+                        self.clicks: int = self.clicks + 1
+                        if len(self.moves) > 0:
+                            if self.moves[0] == 3:
+                                self.grid.update_solver(3, 3, gap)
+                                self.moves.popleft()
+                            else:
+                                self.moves = []
+
+                
 
             
 
 
 
     def convert_grid(self) -> List[int]:
-        grid: List[int] = list(range(0, (self.rows * self.rows)))
+        grid: List[int] = []
         tiles: List[Tile] = self.grid.get_grid()
         for i in range(len(tiles)):
-            for j in range(len(tiles[i])):
-                #num = grid[j][i].get_num()
-                #print(num)
-                grid[self.rows*i + j] = tiles[j][i].get_num()
+            grid.append(tiles[i].get_num())
 
         return grid
 
@@ -258,35 +289,12 @@ class Game:
 
         if f_bound > MAX_BOUND:
             return []
-            #print("didnt find")
         
         elif self.h(path[-1]) == 0:
             return moves
-            '''
-            print("total of " + str(len(path) - 1) + " moves")
-            print("visited a total of " + str(len(explored)) + " nodes")
-            count: int = 0
-            for move in moves:
-                if move == -1:
-                    print("start:")
-                else:
-                    print(str(count) + ":", end =' ')
-                    if move == 0:
-                        print("left")
-                    elif move == 1:
-                        print("right")
-                    elif move == 2:
-                        print("up")
-                    elif move == 3:
-                        print("down")
-                count: int = count + 1
-
-            print()
-            '''
         
         else:
             return []
-            #print("didnt find")
 
 
     def h(self, grid: List[int]) -> int:

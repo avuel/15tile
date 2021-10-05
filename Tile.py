@@ -57,8 +57,8 @@ class Tile:
 
 
     def draw(self, win) -> None:
-
-        pygame.draw.rect(win, self.color, self.rect)
+        if self.color != colors.WHITE:
+            pygame.draw.rect(win, self.color, self.rect)
 
         if (self.num != (self.rows * self.rows)):
             x: int = self.x + (self.width / 2)

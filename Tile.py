@@ -4,7 +4,7 @@ import colors
 
 
 class Tile:
-    def __init__(self, row: int, col: int, width: int, num: int, rows: int) -> None:
+    def __init__(self, col: int, row: int, width: int, num: int, rows: int) -> None:
         self.row: int = row
         self.col: int  = col
         self.width: int = width

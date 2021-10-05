@@ -38,10 +38,16 @@ class Grid:
         
         for i in range(len(self.grid)):
             print(self.grid[i].get_num(), end=' ')
-            print()
-        print("gap row: " + str(self.gap_pos // self.rows))
-        print("gap col: " + str(self.gap_pos % self.rows))
-
+            if ((i + 1) % self.rows) == 0:
+                print()
+        
+        print()
+        for i in range(len(self.grid)):
+            print(i, end=' ')
+            if ((i + 1) % self.rows) == 0:
+                print()
+        print()
+        print(self.gap_pos)
 
 
     def get_grid(self):
@@ -141,8 +147,9 @@ class Grid:
 
         else:
             self.grid[self.gap_pos].swap(self.grid[self.gap_pos - 1])
-            self.gap_row: int = self.gap_pos - 1
+            self.gap_pos: int = self.gap_pos - 1
             return True
+
 
 
 
@@ -152,7 +159,7 @@ class Grid:
 
         else:
             self.grid[self.gap_pos].swap(self.grid[self.gap_pos + 1])
-            self.gap_row: int = self.gap_pos + 1
+            self.gap_pos: int = self.gap_pos + 1
             return True
 
 
@@ -169,7 +176,7 @@ class Grid:
 
 
     def move_down(self) -> bool:
-        if (self.gap_col // self.rows) == (self.rows - 1):
+        if (self.gap_pos // self.rows) == (self.rows - 1):
             return False
 
         else:

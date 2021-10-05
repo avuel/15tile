@@ -69,8 +69,6 @@ class Grid:
     def update_solver(self, expected_move: int, move: int, gap: int) -> bool:
         if expected_move == move:
             self.grid[gap].set_color(colors.WHITE)
-            print(self.grid[gap].get_num())
-            print(self.grid[gap].get_color())
             return True
 
         return False

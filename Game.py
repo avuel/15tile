@@ -150,7 +150,6 @@ class Game:
                             if len(self.moves) > 0:
                                 gap2: int = self.grid.get_gap()
                                 move: int = -1
-                                print(gap2 - gap1)
                                 if (gap2 - gap1) == -1:
                                     move = 0
                                 elif (gap2 - gap1) == 1:
@@ -199,9 +198,6 @@ class Game:
                                         if button.get_name() == b.sol_name:
                                             button.set_color(b.sol_on_clr)
                                             break
-                                
-                                print(self.moves)
-                    
 
             elif self.solved:
                 continue
@@ -252,11 +248,7 @@ class Game:
                                 self.moves.popleft()
                             else:
                                 self.moves = []
-
                 
-
-            
-
 
 
     def convert_grid(self) -> List[int]:
@@ -279,9 +271,9 @@ class Game:
             moves: Deque[int] = deque([])
             path.append(start_grid)
             moves.append(-1)
-            explored: List[List[int]] = []
+            #explored: List[List[int]] = []
             gap: int = self.grid.get_gap()
-            if self.explore(path, explored, moves, gap, f_bound):
+            if self.explore(path, moves, gap, f_bound):
                 if self.h(path[-1]) == 0:
                     break
 
@@ -297,6 +289,7 @@ class Game:
             return []
 
 
+
     def h(self, grid: List[int]) -> int:
         sum: int = 0
         for i in range(len(grid)):
@@ -309,43 +302,36 @@ class Game:
         return sum
 
 
-    def explore(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+
+    def explore(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (self.h(path[-1]) == 0):
             return True
 
         # If we moved right last (1), dont try to move left
         if moves[-1] !=  1:
-            if self.move_left(path, explored, moves, gap, f_bound):
-                self.explore(path, explored, moves, gap - 1, f_bound)
+            if self.move_left(path, moves, gap, f_bound):
+                self.explore(path, moves, gap - 1, f_bound)
 
         # If we moved down last (3), dont try to move up
         if (moves[-1] != 3):
-            if self.move_up(path, explored, moves, gap, f_bound):
-                self.explore(path, explored, moves, gap - self.rows, f_bound)
+            if self.move_up(path, moves, gap, f_bound):
+                self.explore(path, moves, gap - self.rows, f_bound)
 
         # If we moved left last (0)
         if moves[-1] != 0:
-            if self.move_right(path, explored, moves, gap, f_bound):
-                self.explore(path, explored, moves, gap + 1, f_bound)
+            if self.move_right(path, moves, gap, f_bound):
+                self.explore(path, moves, gap + 1, f_bound)
 
         # If we moved up last (2), dont try to move down
         if moves[-1] != 2:
-            if self.move_down(path, explored, moves, gap, f_bound):
-                self.explore(path, explored, moves, gap + self.rows, f_bound)
+            if self.move_down(path, moves, gap, f_bound):
+                self.explore(path, moves, gap + self.rows, f_bound)
 
         if (self.h(path[-1]) == 0):
             return True
 
         popped: List[int] = path.pop()
         moves.pop()
-                
-        explore: bool = True
-        for state in explored:
-            if state == popped:
-                explore = False
-
-        if explore:
-            explored.append(popped)
         
         if (len(path)) == 0:
             return False
@@ -354,8 +340,9 @@ class Game:
             return False
 
 
+
     # Move code 0
-    def move_left(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_left(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap % self.rows) > 0:
             grid = deepcopy(path[-1])
             grid[gap - 1], grid[gap] = grid[gap], grid[gap - 1]
@@ -368,10 +355,6 @@ class Game:
                 if state == grid:
                     return False
 
-            for state in explored:
-                if state == grid:
-                    return False
-
             path.append(grid)
             moves.append(0)
             return True
@@ -379,8 +362,9 @@ class Game:
         return False
 
 
+
     # Move code 1
-    def move_right(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_right(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap % self.rows) < (self.rows - 1):
             grid = deepcopy(path[-1])
             grid[gap + 1], grid[gap] = grid[gap], grid[gap + 1]
@@ -392,10 +376,6 @@ class Game:
             for state in path:
                 if state == grid:
                     return False
-
-            for state in explored:
-                if state == grid:
-                    return False
             
             path.append(grid)
             moves.append(1)
@@ -404,8 +384,9 @@ class Game:
         return False
 
 
+
     # Move code 2
-    def move_up(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_up(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap // self.rows) > 0:
             grid = deepcopy(path[-1])
             grid[gap - self.rows], grid[gap] = grid[gap], grid[gap - self.rows]
@@ -417,10 +398,6 @@ class Game:
             for state in path:
                 if state == grid:
                     return False
-
-            for state in explored:
-                if state == grid:
-                    return False
             
             path.append(grid)
             moves.append(2)
@@ -429,8 +406,9 @@ class Game:
         return False
 
 
+
     # Move code 3
-    def move_down(self, path: Deque[List[int]], explored: List[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_down(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap // self.rows) < (self.rows - 1):
             grid = deepcopy(path[-1])
             grid[gap + self.rows], grid[gap] = grid[gap], grid[gap + self.rows]
@@ -443,10 +421,6 @@ class Game:
                 if state == grid:
                     return False
 
-            for state in explored:
-                if state == grid:
-                    return False
-        
             path.append(grid)
             moves.append(3)
             return True

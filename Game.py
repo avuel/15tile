@@ -1,12 +1,14 @@
 import pygame
 import pygame.freetype
 import buttons as b
+import numpy as np
 from collections import deque
 from Grid import Grid
 from Button import Button
 from Tile import Tile
 from typing import Deque, List
-from copy import deepcopy
+import cProfile
+import pstats
 
 class Game:
     def __init__(self, grid_width: int, extra_width: int, clock, fps: int, rows: int) -> None:
@@ -19,12 +21,21 @@ class Game:
         self.buttons: List[Button] = []
 
         self.running: bool = True
+        self.playing: bool = False
         self.solved: bool = False
         self.time: int = 0
         self.mins: int = 0
         self.clicks: int = 0
 
         self.moves: Deque[int] = deque([])
+
+        with cProfile.Profile() as pr:
+            self.solve_grid()
+
+        stats = pstats.Stats(pr)
+        stats.sort_stats(pstats.SortKey.TIME)
+        #stats.print_stats()
+        stats.dump_stats(filename='timing_statistics.prof')
 
 
 
@@ -56,10 +67,10 @@ class Game:
 
         # If we have no solution moves, make every tile white
         else:
-            grid: List[Tile] = self.grid.get_grid()
+            grid = self.grid.get_grid()
 
             for tile in grid:
-                if tile.get_color == b.sol_on_clr:
+                if tile.get_color() == b.sol_on_clr:
                     tile.set_color(b.sol_off_clr)
                     break
 
@@ -117,7 +128,7 @@ class Game:
         # Control the framerate
         self.clock.tick(self.fps)
 
-        if not self.solved:
+        if (not self.solved) and self.playing:
             self.time: int = self.time + self.clock.get_time()
             if (self.time // 60000) > 0:
                 self.mins: int = self.mins + 1
@@ -141,6 +152,7 @@ class Game:
 
                     # If we are in the grid and we have not solved the puzzle, try to move
                     if (y <= self.grid_width) and (not self.solved):
+                        self.playing: bool = True
                         row, col = self.get_clicked_pos(x, y, self.rows, self.grid_width)
                         gap1: int = self.grid.get_gap()
                         if self.grid.move_tile(col, row):
@@ -176,6 +188,7 @@ class Game:
                                 self.time: int = 0
                                 self.mins: int = 0
                                 self.clicks: int = 0
+                                self.playing: bool = False
 
                                 for button in self.buttons:
                                     if button.get_name() == b.sol_name:
@@ -194,6 +207,7 @@ class Game:
                                 self.moves: Deque[int] = self.solve_grid()
                                 if len(self.moves) > 0:
                                     self.moves.popleft()
+                                    #print("moves: " + str(len(self.moves)))
                                     for button in self.buttons:
                                         if button.get_name() == b.sol_name:
                                             button.set_color(b.sol_on_clr)
@@ -204,6 +218,7 @@ class Game:
 
             # Handle Keyboard presses, check if the board is solved after each press
             elif event.type == pygame.KEYDOWN:
+                self.playing: bool = True
                 gap: int = self.grid.get_gap()
                 if event.key == pygame.K_LEFT:
                     if self.grid.move_left():
@@ -251,32 +266,33 @@ class Game:
                 
 
 
-    def convert_grid(self) -> List[int]:
-        grid: List[int] = []
+    def convert_grid(self) -> np.ndarray:
+        temp_grid: List[int] = []
         tiles: List[Tile] = self.grid.get_grid()
         for i in range(len(tiles)):
-            grid.append(tiles[i].get_num())
+            temp_grid.append(tiles[i].get_num())
+
+        grid: np.ndarray = np.array(temp_grid)
 
         return grid
 
 
     
     def solve_grid(self) -> Deque[int]:
-        start_grid: List[int] = self.convert_grid()
-        f_bound: int = 15
-        MAX_BOUND: int = 100
+        start_grid: np.ndarray = self.convert_grid()
+        f_bound: int = 5
+        MAX_BOUND: int = 50
         
         while(f_bound <= MAX_BOUND):
-            path: Deque[List[int]] = deque([])
+            path: Deque[np.ndarray] = deque([])
             moves: Deque[int] = deque([])
             path.append(start_grid)
             moves.append(-1)
-            #explored: List[List[int]] = []
             gap: int = self.grid.get_gap()
             if self.explore(path, moves, gap, f_bound):
-                if self.h(path[-1]) == 0:
+                if (path[-1] == np.arange(1, self.rows * self.rows + 1)).all():
                     break
-
+            print(f_bound)
             f_bound: int = f_bound + 1
 
         if f_bound > MAX_BOUND:
@@ -290,21 +306,18 @@ class Game:
 
 
 
-    def h(self, grid: List[int]) -> int:
+    def h(self, grid: np.ndarray) -> int:
         sum: int = 0
+        
         for i in range(len(grid)):
-            row: int = i // self.rows
-            col: int = i % self.rows
-            end_row: int = (grid[i] - 1) // self.rows
-            end_col: int = (grid[i] - 1) % self.rows
-            sum: int = sum + abs(row - end_row) + abs(col - end_col)
+            sum: int = sum + abs((i // self.rows) - ((grid[i] - 1) // self.rows)) + abs((i % self.rows) - ((grid[i] - 1) % self.rows))
 
         return sum
 
 
 
-    def explore(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
-        if (self.h(path[-1]) == 0):
+    def explore(self, path: Deque[np.ndarray], moves: Deque[int], gap: int, f_bound: int) -> bool:
+        if (path[-1] == np.arange(1, (self.rows * self.rows + 1))).all():
             return True
 
         # If we moved right last (1), dont try to move left
@@ -327,10 +340,10 @@ class Game:
             if self.move_down(path, moves, gap, f_bound):
                 self.explore(path, moves, gap + self.rows, f_bound)
 
-        if (self.h(path[-1]) == 0):
+        if (path[-1] == np.arange(1, (self.rows * self.rows + 1))).all():
             return True
 
-        popped: List[int] = path.pop()
+        path.pop()
         moves.pop()
         
         if (len(path)) == 0:
@@ -342,17 +355,17 @@ class Game:
 
 
     # Move code 0
-    def move_left(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_left(self, path: Deque[np.ndarray], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap % self.rows) > 0:
-            grid = deepcopy(path[-1])
-            grid[gap - 1], grid[gap] = grid[gap], grid[gap - 1]
-            f = self.h(grid) + len(path)
+            grid: np.ndarray = np.copy(path[-1])
+            grid[[gap - 1, gap]] = grid[[gap, gap - 1]]
+            f = self.h(grid) + (len(path) - 1)
             
             if f > f_bound:
                 return False
 
             for state in path:
-                if state == grid:
+                if (state == grid).all():
                     return False
 
             path.append(grid)
@@ -364,17 +377,17 @@ class Game:
 
 
     # Move code 1
-    def move_right(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_right(self, path: Deque[np.ndarray], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap % self.rows) < (self.rows - 1):
-            grid = deepcopy(path[-1])
-            grid[gap + 1], grid[gap] = grid[gap], grid[gap + 1]
-            f = self.h(grid) + len(path)
+            grid: np.ndarray = np.copy(path[-1])
+            grid[[gap + 1, gap]] = grid[[gap, gap + 1]]
+            f = self.h(grid) + (len(path) - 1)
 
             if f > f_bound:
                 return False
 
             for state in path:
-                if state == grid:
+                if (state == grid).all():
                     return False
             
             path.append(grid)
@@ -386,17 +399,17 @@ class Game:
 
 
     # Move code 2
-    def move_up(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_up(self, path: Deque[np.ndarray], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap // self.rows) > 0:
-            grid = deepcopy(path[-1])
-            grid[gap - self.rows], grid[gap] = grid[gap], grid[gap - self.rows]
+            grid: np.ndarray = np.copy(path[-1])
+            grid[[gap - self.rows, gap]] = grid[[gap, gap - self.rows]]
 
-            f = self.h(grid) + len(path)
+            f = self.h(grid) + (len(path) - 1)
             if f > f_bound:
                 return False
 
             for state in path:
-                if state == grid:
+                if (state == grid).all():
                     return False
             
             path.append(grid)
@@ -408,17 +421,18 @@ class Game:
 
 
     # Move code 3
-    def move_down(self, path: Deque[List[int]], moves: Deque[int], gap: int, f_bound: int) -> bool:
+    def move_down(self, path: Deque[np.ndarray], moves: Deque[int], gap: int, f_bound: int) -> bool:
         if (gap // self.rows) < (self.rows - 1):
-            grid = deepcopy(path[-1])
-            grid[gap + self.rows], grid[gap] = grid[gap], grid[gap + self.rows]
+            grid: np.ndarray = np.copy(path[-1])
+            #grid = deepcopy(path[-1])
+            grid[[gap + self.rows, gap]] = grid[[gap, gap + self.rows]]
 
-            f = self.h(grid) + len(path)
+            f = self.h(grid) + (len(path) - 1)
             if f > f_bound:
                 return False
 
             for state in path:
-                if state == grid:
+                if (state == grid).all():
                     return False
 
             path.append(grid)

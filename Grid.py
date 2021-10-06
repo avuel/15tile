@@ -1,6 +1,7 @@
 import pygame
 import pygame.freetype
 import colors
+import numpy as np
 from random import shuffle
 from Tile import Tile
 from typing import List
@@ -8,7 +9,7 @@ from typing import List
 class Grid:
     def __init__(self, width: int, rows: int) -> None:
         self.rows: int = rows
-        self.grid: List[Tile] = []
+        self.grid = np.array([])
         self.width: int = width
         self.gap: int = self.width // self.rows
         self.gap_pos: int = None
@@ -18,7 +19,7 @@ class Grid:
 
 
     def make_grid(self) -> None:
-        self.grid: List[Tile] = []
+        grid: List[Tile] = []
         nums: List[int] = list(range(1, (self.rows * self.rows) + 1))
         shuffle(nums)
 
@@ -30,8 +31,10 @@ class Grid:
             if (num == (self.rows*self.rows)):
                 self.gap_pos: int = i
             tile: Tile = Tile(i // self.rows, i % self.rows, self.gap, num, self.rows)
-            self.grid.append(tile)
+            grid.append(tile)
         
+        self.grid = np.array(grid)
+
         if self.is_solved():
             self.make_grid()
 

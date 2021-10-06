@@ -1,10 +1,11 @@
 import pygame
 import pygame.freetype
-import buttons as b
-from Game import Game
 
 
 def main() -> None:
+    import buttons as b
+    from Game import Game
+
     # Rows of the game
     rows: int = 0
 
@@ -33,7 +34,7 @@ def main() -> None:
     game.add_button(b.fps_name, b.fps_x, b.fps_y, b.fps_wdth, b.fps_hght, b.fps_btn_clr, b.fps_txt, b.fps_txt_x, b.fps_txt_y, b.fps_txt_clr, b.fps_border_clr)
     game.add_button(b.clks_name, b.clks_x, b.clks_y, b.clks_wdth, b.clks_hght, b.clks_btn_clr, b.clks_txt, b.clks_txt_x, b.clks_txt_y, b.clks_txt_clr, b.clks_border_clr)
     game.add_button(b.sol_name, b.sol_x, b.sol_y, b.sol_wdth, b.sol_hght, b.sol_off_clr, b.sol_txt, b.sol_txt_x, b.sol_txt_y, b.sol_txt_clr, b.sol_border_clr)
-    
+
     # Update the game while the game is running
     while (game.is_running()):
         game.update(win)

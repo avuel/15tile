@@ -298,7 +298,7 @@ class Game:
         if f_bound > MAX_BOUND:
             return []
         
-        elif self.h(path[-1]) == 0:
+        elif (path[-1] == np.arange(1, self.rows * self.rows + 1)).all():
             return moves
         
         else:
@@ -311,9 +311,34 @@ class Game:
         
         for i in range(len(grid)):
             sum: int = sum + abs((i // self.rows) - ((grid[i] - 1) // self.rows)) + abs((i % self.rows) - ((grid[i] - 1) % self.rows))
-
+            #sum: int = sum + self.dist(i, grid[i])
+            #print(sum)
         return sum
 
+
+    def dist(self, i: int, num: int) -> int:
+        count: int = 0
+        if i < num:
+            while (i + self.rows) <= num:
+                count: int = count + 1
+                i: int = i + self.rows
+
+        elif i > num:
+            while (i - self.rows) <= num:
+                count: int = count + 1
+                i: int = i - self.rows
+        
+        if i < num:
+            while (i + 1) <= num:
+                count: int = count + 1
+                i: int = i + 1
+        
+        if i > num:
+            while (i - 1) <= num:
+                count: int = count + 1
+                i: int = i - 1
+                
+        return count
 
 
     def explore(self, path: Deque[np.ndarray], moves: Deque[int], gap: int, f_bound: int) -> bool:

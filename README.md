@@ -27,7 +27,7 @@ Lastly, I aim to implement an algorithm (most likely iterative A*) to solve the 
 highlight the optimal tile to move to solve the puzzle, or maybe draw an arrow for while tile you should slide over
 (I am thinking that highlighting the tile will be much easier as I would only need to change the color of the tile to yellow maybe)
 
-The pygame code was mostly taken from this video
+The pygame code was adapted after watching this tutorial
 https://youtu.be/JtiK0DOeI4A
 
 I did adapt the game but the tile generation and displaying (except for the numbers) is generally exactly what was shown in the video.
